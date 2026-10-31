@@ -1,7 +1,7 @@
 {
   # Git Configuration ( For Pulling Software Repos )
   gitUsername = "kaw";
-  gitEmail = "ngongiakhang1912@gmail.com";
+  gitEmail = "192446310+kawzuma@users.noreply.github.com";
 
   # Set Displau Manager
   # `tui` for Text login
