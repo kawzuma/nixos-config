@@ -27,7 +27,6 @@ in {
       ./python.nix
       ./cli/bat.nix
       ./cli/btop.nix
-      ./cli/bottom.nix
       ./cli/cava.nix
       ./emoji.nix
       ./eza.nix
@@ -42,7 +41,6 @@ in {
       ./terminals/kitty.nix
       ./cli/lazygit.nix
       ./obs-studio.nix
-      #./editors/nvf.nix
       ./editors/nixvim.nix
       ./editors/nano.nix
       ./rofi
@@ -58,7 +56,6 @@ in {
       ./wlogout
       ./xdg.nix
       ./yazi
-      #./zen-browser.nix
       ./zoxide.nix
       ./zsh
     ]
