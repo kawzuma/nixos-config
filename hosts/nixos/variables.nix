@@ -3,13 +3,13 @@
   gitUsername = "kaw";
   gitEmail = "192446310+kawzuma@users.noreply.github.com";
 
-  # Set Displau Manager
+  # Set Display Manager
   # `tui` for Text login
   # `sddm` for graphical GUI (default)
   # SDDM background is set with stylixImage
   displayManager = "sddm";
 
-  # Emable/disable bundled applications
+  # Enable/disable bundled applications
   tmuxEnable = false;
   alacrittyEnable = false;
   weztermEnable = false;
@@ -17,7 +17,7 @@
   vscodeEnable = false;
   # Note: This is evil-helix with VIM keybindings by default
   helixEnable = false;
-  #To install: Enable here, zcli rebuild, then run zcli doom install
+  # To install: Enable here, zcli rebuild, then run zcli doom install
   doomEmacsEnable = false;
 
   # Python development tools are included by default
@@ -44,7 +44,7 @@
   # This does NOT install your browser
   # You need to install it by adding it to the `packages.nix`
   # or as a flatpak
-  browser = "brave-origin";
+  browser = "google-chrome";
 
   # Host-level default applications (picked up by Home Manager xdg.mimeApps)
   # Uncomment and adjust the .desktop IDs to set per-host defaults.
@@ -62,7 +62,7 @@
   # };
 
   # Available Options:
-  # Kitty, ghostty, wezterm, aalacrity
+  # Kitty, ghostty, wezterm, alacritty
   # Note: kitty, wezterm, alacritty have to be enabled in `variables.nix`
   # Setting it here does not enable it. Kitty is installed by default
   terminal = "kitty"; # Set Default System Terminal
@@ -88,7 +88,7 @@
 
   # Themes, waybar and animation.
   #  Only uncomment your selection
-  # The others much be commented out.
+  # The others must be commented out.
 
   # Set Stylix Image
   # This will set your color palette
