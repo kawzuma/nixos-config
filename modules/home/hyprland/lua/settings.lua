@@ -31,38 +31,26 @@ local active_border = {
 
 local inactive_border = rgba(theme.base01, "1e1e2e", "ff")
 
-hl.config({
-  input = {
-    kb_layout = keyboard.layout or "us",
-    kb_options = "grp:alt_caps_toggle,caps:super",
-    numlock_by_default = true,
-    repeat_delay = 300,
-    follow_mouse = 1,
-    float_switch_override_focus = 0,
-    sensitivity = 0,
-    touchpad = {
-      natural_scroll = true,
-      disable_while_typing = true,
-      scroll_factor = 0.8,
-    },
+local input = {
+  kb_layout = keyboard.layout or "us",
+  kb_options = "grp:alt_caps_toggle,caps:super",
+  numlock_by_default = true,
+  repeat_delay = 300,
+  follow_mouse = 1,
+  float_switch_override_focus = 0,
+  sensitivity = 0,
+  touchpad = {
+    natural_scroll = true,
+    disable_while_typing = true,
+    scroll_factor = 0.8,
   },
-})
-
+}
 if non_empty(keyboard.variant) then
-  hl.config({
-    input = {
-      kb_variant = keyboard.variant,
-    },
-  })
+  input.kb_variant = keyboard.variant
 end
 
-hl.gesture({
-  fingers = 3,
-  direction = "horizontal",
-  action = "workspace",
-})
-
 hl.config({
+  input = input,
   gestures = {
     workspace_swipe_distance = 500,
     workspace_swipe_invert = true,
@@ -71,9 +59,6 @@ hl.config({
     workspace_swipe_create_new = true,
     workspace_swipe_forever = true,
   },
-})
-
-hl.config({
   general = {
     layout = "scrolling",
     gaps_in = 6,
@@ -85,9 +70,6 @@ hl.config({
       inactive_border = inactive_border,
     },
   },
-})
-
-hl.config({
   misc = {
     layers_hog_keyboard_focus = true,
     initial_workspace_tracking = 0,
@@ -100,9 +82,6 @@ hl.config({
     enable_anr_dialog = true,
     anr_missed_pings = 15,
   },
-})
-
-hl.config({
   dwindle = {
     preserve_split = true,
     smart_resizing = true,
@@ -113,9 +92,6 @@ hl.config({
     precise_mouse_move = false,
     special_scale_factor = 0.8,
   },
-})
-
-hl.config({
   decoration = {
     rounding = 10,
     blur = {
@@ -132,16 +108,10 @@ hl.config({
       color = "rgba(1a1a1aee)",
     },
   },
-})
-
-hl.config({
   ecosystem = {
     no_donation_nag = true,
     no_update_news = false,
   },
-})
-
-hl.config({
   cursor = {
     sync_gsettings_theme = true,
     no_hardware_cursors = 2,
@@ -149,26 +119,12 @@ hl.config({
     warp_on_change_workspace = 2,
     no_warps = true,
   },
-})
-
-hl.config({
   render = {
     direct_scanout = 0,
   },
-})
-
--- Advertise the renderer's full dmabuf format list, not just the formats the
--- display can scan out. Hyprland 0.57 defaults quirks:skip_non_kms_dmabuf_formats
--- to true, which narrows the list to the display's scanout set; on virtio-gpu
--- that leaves XRGB8888 only, so no alpha EGLConfig exists. GLFW asks for
--- EGL_ALPHA_SIZE 8, so kitty and alacritty fail with "EGL: No EGLConfigs returned".
-hl.config({
   quirks = {
     skip_non_kms_dmabuf_formats = false,
   },
-})
-
-hl.config({
   master = {
     new_status = "slave",
     new_on_top = false,
@@ -181,23 +137,20 @@ hl.config({
     drop_at_cursor = true,
     always_keep_position = false,
   },
-})
-
-hl.config({
   scrolling = {
     column_width = 0.5,
     fullscreen_on_one_column = true,
     direction = "right",
     follow_focus = true,
   },
-})
-
-hl.config({
   monocle = {},
-})
-
-hl.config({
   xwayland = {
     force_zero_scaling = true,
   },
+})
+
+hl.gesture({
+  fingers = 3,
+  direction = "horizontal",
+  action = "workspace",
 })

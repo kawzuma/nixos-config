@@ -1,6 +1,5 @@
 {
   pkgs,
-  inputs ? null,
 }: let
   icons = pkgs.runCommand "qs-wlogout-icons" {} ''
     mkdir -p $out

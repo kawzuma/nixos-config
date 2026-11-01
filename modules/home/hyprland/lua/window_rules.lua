@@ -24,6 +24,13 @@ local function parse_scalar(value)
     return number
   end
 
+  -- Handle "active = inactive" pairs (e.g., opacity = 0.8 = 0.7, size = 60% = 70%)
+  local a, b = cleaned:match("^([%w%%%.]+)%s*=%s*([%w%%%.]+)$")
+  if a and b then
+    local na, nb = tonumber(a), tonumber(b)
+    return { na or a, nb or b }
+  end
+
   if cleaned:match("%s=%s") then
     return trim(cleaned:gsub("%s*=%s*", " "))
   end
@@ -37,6 +44,19 @@ local function apply_rule(rule)
   end
   if rule.match and next(rule.match) == nil then
     rule.match = nil
+  end
+  -- Hyprland's Lua API expects opacity as a string (e.g., "0.9" or "0.9 0.8"),
+  -- not a number, so coerce it to a string before applying the rule.
+  if rule.opacity ~= nil then
+    if type(rule.opacity) == "table" then
+      local parts = {}
+      for _, v in ipairs(rule.opacity) do
+        parts[#parts + 1] = tostring(v)
+      end
+      rule.opacity = table.concat(parts, " ")
+    else
+      rule.opacity = tostring(rule.opacity)
+    end
   end
   hl.window_rule(rule)
 end

@@ -22,7 +22,6 @@ in {
     [
       ./bash.nix
       ./bashrc-personal.nix
-      ./zshrc-personal.nix   # <-- added import for personal Zsh config
       ./overview.nix
       ./python.nix
       ./cli/bat.nix

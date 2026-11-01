@@ -1,4 +1,4 @@
-{pkgs}:
+{pkgs, config}:
 pkgs.writeShellScriptBin "qs-docs" ''
     #!/usr/bin/env bash
     set -euo pipefail
@@ -45,11 +45,11 @@ pkgs.writeShellScriptBin "qs-docs" ''
     done
 
     # Validate category (dynamically check if directory exists or is "root")
-    if [[ "$CATEGORY" != "root" && ! -d "$HOME/ddubsos/docs/$CATEGORY" ]]; then
+    if [[ "$CATEGORY" != "root" && ! -d "$HOME/zaneyos/docs/$CATEGORY" ]]; then
       echo "Error: Category directory '$CATEGORY' not found in docs/" >&2
       echo "Available categories:" >&2
       echo "  root" >&2
-      ls -1 "$HOME/ddubsos/docs/" | grep -E '^[a-zA-Z]' | head -10 >&2
+      ls -1 "$HOME/zaneyos/docs/" | grep -E '^[a-zA-Z]' | head -10 >&2
       exit 1
     fi
 
@@ -126,8 +126,8 @@ pkgs.writeShellScriptBin "qs-docs" ''
     done
 
     # Then dynamically discover all category directories
-    if [ -d "$HOME/ddubsos/docs" ]; then
-      for category_dir in "$HOME/ddubsos/docs"/*/; do
+    if [ -d "$HOME/zaneyos/docs" ]; then
+      for category_dir in "$HOME/zaneyos/docs"/*/; do
         if [ -d "$category_dir" ]; then
           category=$(basename "$category_dir")
           for lang in en es; do
@@ -263,9 +263,9 @@ pkgs.writeShellScriptBin "qs-docs" ''
       // Handle root directory files
       var filePath;
       if (selectedCategory === "root") {
-        filePath = "/home/dwilliams/ddubsos/docs/" + filename;
+        filePath = "${config.home.homeDirectory}/zaneyos/docs/" + filename;
       } else {
-        filePath = "/home/dwilliams/ddubsos/docs/" + selectedCategory + "/" + filename;
+        filePath = "${config.home.homeDirectory}/zaneyos/docs/" + selectedCategory + "/" + filename;
       }
 
       const xhr = new XMLHttpRequest();
