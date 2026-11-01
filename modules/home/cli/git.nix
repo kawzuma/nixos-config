@@ -12,7 +12,10 @@ in {
       };
 
       # FOSS-friendly settings
-      push.default = "simple"; # Match modern push behavior
+      push = {
+        default = "simple"; # Match modern push behavior
+        autoSetupRemote = true; # Automatically set upstream on first push
+      };
       credential.helper = "cache --timeout=7200";
       init.defaultBranch = "main"; # Set default new branches to 'main'
       log.decorate = "full"; # Show branch/tag info in git log
