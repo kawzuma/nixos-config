@@ -75,7 +75,7 @@ hl.config({
 
 hl.config({
   general = {
-    layout = "dwindle",
+    layout = "scrolling",
     gaps_in = 6,
     gaps_out = 8,
     border_size = 2,
@@ -185,7 +185,7 @@ hl.config({
 
 hl.config({
   scrolling = {
-    column_width = 0.80,
+    column_width = 0.5,
     fullscreen_on_one_column = true,
     direction = "right",
     follow_focus = true,

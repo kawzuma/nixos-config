@@ -24,6 +24,7 @@
         #"com.rtosta.zapzap"              # WhatsApp client
         #"io.github.flattool.Warehouse"   # Manage flatpaks, clean data, remove flatpaks and deps
         "it.mijorus.gearlever" # Manage and support AppImages
+        "org.vinegarhq.Sober" # Roblox on Linux
         #"io.github.freedoom.Phase1"      #  Classic Doom FPS 1
         #"io.github.freedoom.Phase2"      #  Classic Doom FPS 2
         #"io.github.dvlv.boxbuddyrs"      #  Manage distroboxes

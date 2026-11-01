@@ -48,12 +48,12 @@ in {
     ++ noctaliaPkgs
     ++ [
       alejandra # nix formatter
+      brave-origin # default browser
       brightnessctl # For Screen Brightness Control
       eza # Fast, modern ls replacement
       ffmpeg # Terminal Video / Audio Editing
       fd # Simple, fast find replacement
       gnumake # Needed for build tools / emacs
-      google-chrome # default browser
       mpv # Video Player
       sqlite # SQLite database engine
       socat # Multipurpose relay / IPC
