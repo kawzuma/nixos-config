@@ -75,6 +75,21 @@
         ];
       };
   in {
+    # Lan Tian's binary cache (cache.lantian.pub/lantian) hosts pre-built CachyOS
+    # kernel binaries for xddxdd/nix-cachyos-kernel. Combined with the pinned
+    # overlay in hosts/nixos/kernel.nix, Nix fetches pre-built binaries instead
+    # of compiling the kernel from source.
+    nixConfig = {
+      substituters = [
+        "https://cache.nixos.org"
+        "https://cache.lantian.pub/lantian"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
+      ];
+    };
+
     nixosConfigurations = {
       amd = mkNixosConfig "amd";
       nvidia = mkNixosConfig "nvidia";

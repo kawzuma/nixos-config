@@ -1,19 +1,11 @@
-{pkgs, ...}: {
-  home.packages = with pkgs; [zsh];
-
-  home.file."./.zshrc-personal".text = ''
-
-    # This file allows you to define your own aliases, functions, etc
-    # below are just some examples of what you can use this file for
-
-      #!/usr/bin/env zsh
-      # Set defaults
-      #
-      #export EDITOR="nvim"
-      #export VISUAL="nvim"
-
-      #alias c="clear"
-
-
+{
+  home.file.".zshrc-personal".text = ''
+    # All-in-one git push helper: gpush "commit message"
+    gpush() {
+      local msg="''${1:-update configuration}"
+      git add -A
+      git commit -m "$msg"
+      git push origin main
+    }
   '';
 }
