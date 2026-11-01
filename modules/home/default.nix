@@ -12,6 +12,8 @@
     helixEnable
     doomEmacsEnable
     ;
+  # pythonEnable is optional in host variables; default to enabled when absent
+  pythonEnabled = if vars ? pythonEnable then vars.pythonEnable else true;
   # Select bar module based on barChoice
   barModule =
     if barChoice == "noctalia"
@@ -23,9 +25,10 @@ in {
       ./bash.nix
       ./bashrc-personal.nix
       ./overview.nix
-      ./python.nix
       ./cli/bat.nix
       ./cli/btop.nix
+      ./cli/cava.nix
+      ./cli/ghee.nix
       ./emoji.nix
       ./eza.nix
       ./fastfetch
@@ -54,6 +57,11 @@ in {
       ./zoxide.nix
       ./zsh
     ]
+    ++ (
+      if pythonEnabled
+      then [./python.nix]
+      else []
+    )
     ++ (
       if helixEnable
       then [./editors/evil-helix.nix]

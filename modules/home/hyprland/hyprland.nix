@@ -57,9 +57,10 @@ let
     (import ./windowrules.nix { }).wayland.windowManager.hyprland.extraConfig or ""
   );
 
+  # Monitor lines come solely from the host's extraMonitorSettings
+  # (hosts/<host>/variables.nix) to avoid duplicating entries.
   monitorLines = [
     "monitor=,preferred,auto,auto"
-    "monitor=Virtual-1,1920x1080@60,auto,1"
   ]
   ++ builtins.filter (line: line != "") (
     map lib.strings.trim (lib.splitString "\n" extraMonitorSettings)

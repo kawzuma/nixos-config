@@ -33,7 +33,6 @@ in {
     ./user.nix
     ./virtualisation.nix
     ./xserver.nix
-    ./cachix.nix
     inputs.stylix.nixosModules.stylix
   ];
 }

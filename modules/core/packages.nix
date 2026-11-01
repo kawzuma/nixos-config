@@ -46,6 +46,12 @@ in {
       awww
     ]
     ++ noctaliaPkgs
+    # waybar/waypaper are only used when barChoice != "noctalia";
+    # awww stays unconditional because the qs-wallpaper scripts use it
+    ++ lib.optionals (barChoice != "noctalia") [
+      waybar # Status bar
+      waypaper # Change wallpaper
+    ]
     ++ [
       alejandra # nix formatter
       brave-origin # default browser
@@ -62,8 +68,6 @@ in {
       usbutils # USB Devices tools
       upower # noctalia shell battery
       v4l-utils # Video4Linux utilities
-      waybar # Status bar
-      waypaper # Change wallpaper
       wget # File retriever
       python3 # Python 3 runtime
       nwg-displays # Display configuration utility

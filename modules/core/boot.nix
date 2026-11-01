@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   config,
   ...
@@ -23,7 +24,9 @@
   });
 in {
   boot = {
-    kernelPackages = pkgs.linuxPackages_latest;
+    # mkDefault so hosts (e.g. hosts/nixos/kernel.nix with lib.mkForce) can
+    # override this fallback kernel package set.
+    kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
     kernelModules = ["v4l2loopback"];
     extraModulePackages = [v4l2loopback];
     kernel.sysctl = {"vm.max_map_count" = 2147483642;};
