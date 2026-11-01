@@ -16,9 +16,13 @@ in {
         default = "simple"; # Match modern push behavior
         autoSetupRemote = true; # Automatically set upstream on first push
       };
-      branch.main = {
-        remote = "origin";
-        merge = "refs/heads/main";
+      branch = {
+        main = {
+          remote = "origin";
+          merge = "refs/heads/main";
+        };
+        autosetupmerge = "true"; # Set up tracking (merge) for new branches
+        autosetuprebase = "never"; # Never auto-rebase when setting up tracking
       };
       credential.helper = "cache --timeout=7200";
       init.defaultBranch = "main"; # Set default new branches to 'main'
