@@ -21,7 +21,10 @@ in {
           remote = "origin";
           merge = "refs/heads/main";
         };
-        autosetupmerge = "true"; # Set up tracking (merge) for new branches
+        # Do NOT auto-add upstream entries: combined with the explicit
+        # branch.main block above this can leave multiple upstream branches,
+        # making `git push` fail with "refusing to push".
+        autosetupmerge = "false";
         autosetuprebase = "never"; # Never auto-rebase when setting up tracking
       };
       credential.helper = "cache --timeout=7200";
