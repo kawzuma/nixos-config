@@ -15,7 +15,7 @@ pkgs.writeShellScriptBin "qs-cheatsheets" ''
   Usage: qs-cheatsheets [options]
 
   Options:
-    -c CATEGORY   Category to display (emacs|hyprland|kitty|wezterm|yazi|nixos) (default: emacs)
+    -c CATEGORY   Category to display (emacs|hyprland|kitty|nixos) (default: emacs)
     -l LANGUAGE   Language (en|es) (default: en)
     -h            Show this help
   EOF
@@ -319,7 +319,7 @@ pkgs.writeShellScriptBin "qs-cheatsheets" ''
               win.availableCategories = result;
             } catch (e) {
               console.error("Failed to parse categories JSON:", e);
-              win.availableCategories = ["emacs", "hyprland", "kitty", "wezterm", "yazi", "nixos"];
+              win.availableCategories = ["emacs", "hyprland", "kitty", "nixos"];
             }
           }
         }

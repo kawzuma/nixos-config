@@ -66,7 +66,6 @@ in {
         "$modifier ALT,W, Web Search, exec, web-search"
         "$modifier SHIFT,N, Notification Reset, exec, swaync-client -rs"
         "$modifier,W, Web Browser, exec, ${browser}"
-        "$modifier,Y, File Manager, exec, kitty -e yazi"
         "$modifier,E, Emoji Picker, exec, emopicker9000"
         "$modifier,S, Screenshot, exec, screenshootin"
         # ============= SCREENSHOTS =============

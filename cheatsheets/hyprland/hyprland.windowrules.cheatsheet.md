@@ -3,7 +3,7 @@ English | [Español](./hyprland.windowrules.cheatsheet.es.md)
 # Hyprland Window Rules — ZaneyOS
 ## 🧩 Tags and Classification
 - file-manager — Thunar, Nautilus, PCManFM-Qt
-- terminal — Ghostty, WezTerm, Alacritty, Kitty, kitty-dropterm
+- terminal — Kitty, kitty-dropterm
 - browser — Brave, Firefox, Chrome, Thorium/Cachy
 - video — VLC, mpv, Clapper
 - projects — VSCodium/VSCode

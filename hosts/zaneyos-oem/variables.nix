@@ -11,9 +11,6 @@
 
   # Emable/disable bundled applications
   tmuxEnable = true;
-  alacrittyEnable = true;
-  weztermEnable = true;
-  ghosttyEnable = true;
   vscodeEnable = true;
   helixEnable = true;
   #To install rebuild, then run zcli doom install

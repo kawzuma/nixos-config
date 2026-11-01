@@ -2,12 +2,9 @@
   vars = import ../../hosts/${host}/variables.nix;
   inherit
     (vars)
-    alacrittyEnable
     barChoice
-    ghosttyEnable
     tmuxEnable
     waybarChoice
-    weztermEnable
     vscodeEnable
     helixEnable
     doomEmacsEnable
@@ -53,7 +50,6 @@ in {
       barModule
       ./wlogout
       ./xdg.nix
-      ./yazi
       ./zoxide.nix
       ./zsh
     ]
@@ -81,23 +77,8 @@ in {
       else []
     )
     ++ (
-      if weztermEnable
-      then [./terminals/wezterm.nix]
-      else []
-    )
-    ++ (
-      if ghosttyEnable
-      then [./terminals/ghostty.nix]
-      else []
-    )
-    ++ (
       if tmuxEnable
       then [./terminals/tmux.nix]
-      else []
-    )
-    ++ (
-      if alacrittyEnable
-      then [./terminals/alacritty.nix]
       else []
     );
 }

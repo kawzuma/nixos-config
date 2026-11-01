@@ -17,9 +17,6 @@
 
 ## 🖥️ Terminales
 - SUPERKEY+Return — Terminal
-- SUPERKEY+SHIFT+Return — Terminal Foot (flotante)
-- SUPERKEY+ALT+Return — WezTerm
-- SUPERKEY+CTRL+Return — Ghostty
 - SUPERKEY+SHIFT+T — Terminal en bandeja (scratchpad)
 
 ## ✍️ Editores e IDEs
@@ -33,7 +30,6 @@
 
 ## 📁 Gestión de Archivos
 - SUPERKEY+T — Thunar
-- SUPERKEY+Y — Yazi
 
 ## 🛠️ Utilidades del Sistema
 - SUPERKEY+V — Historial del portapapeles

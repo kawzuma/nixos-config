@@ -17,9 +17,6 @@ English | [Español](./hyprland.binds.cheatsheet.es.md)
 
 ## 🖥️ Terminals
 - SUPERKEY+Return — Terminal
-- SUPERKEY+SHIFT+Return — Foot Terminal (Floating)
-- SUPERKEY+ALT+Return — WezTerm
-- SUPERKEY+CTRL+Return — Ghostty
 - SUPERKEY+SHIFT+T — Scratchpad Terminal
 
 ## ✍️ Editors & IDEs
@@ -33,7 +30,6 @@ English | [Español](./hyprland.binds.cheatsheet.es.md)
 
 ## 📁 File Management
 - SUPERKEY+T — Thunar
-- SUPERKEY+Y — Yazi
 
 ## 🛠️ System Utilities
 - SUPERKEY+V — Clipboard History

@@ -134,14 +134,14 @@ when `barChoice = "noctalia"`).
 - `$modifier + Alt + W` → Open `wallsetter`
 - `$modifier + Shift + N` → Run `swaync-client -rs`
 - `$modifier + W` → Launch `Web Browser`
-- `$modifier + Y` → Open `kitty` with `yazi`
+- `$modifier + T` → Open `Thunar` (file manager)
+- `$modifier + Shift + T` → Dropdown terminal (`DropTerminal`)
 - `$modifier + E` → Open `emopicker9000`
 - `$modifier + S` → Take a screenshot
 - `$modifier + Shift + D` → Open `Discord`
 - `$modifier + O` → Launch `OBS Studio`
 - `$modifier + Alt + C` → Color Picker
 - `$modifier + G` → Open `GIMP`
-- `$modifier + T` → Toggle terminal with `pypr`
 - `$modifier + Alt + M` → Open `pavucontrol`
 
 ### Window Management

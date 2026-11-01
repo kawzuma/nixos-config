@@ -20,7 +20,7 @@ _: {
 
       windowrule {
         name = Terminals
-        match:class = ^(com.mitchellh.ghostty|org.wezfurlong.wezterm|Alacritty|kitty|kitty-dropterm|dropterminal)$
+        match:class = ^(kitty|kitty-dropterm|dropterminal)$
         tag = +terminal
       }
 
@@ -352,7 +352,7 @@ _: {
 
       windowrule {
         name = qs-keybinds
-        match:title = ^(Hyprland Keybinds|Emacs Leader Keybinds|Kitty Configuration|WezTerm Configuration|Ghostty Configuration|Yazi Configuration)$
+        match:title = ^(Hyprland Keybinds|Emacs Leader Keybinds|Kitty Configuration)$
         float = on
         center = on
         size = 55% = 66%
@@ -368,7 +368,7 @@ _: {
 
       windowrule {
         name = qs-extended-viewers
-        match:title = ^(Hyprland Keybinds|Niri Keybinds|BSPWM Keybinds|i3 Keybinds|Sway Keybinds|DWM Keybinds|Emacs Leader Keybinds|Kitty Configuration|WezTerm Configuration|Ghostty Configuration|Yazi Configuration|Cheatsheets Viewer|Documentation Viewer)$
+        match:title = ^(Hyprland Keybinds|Niri Keybinds|BSPWM Keybinds|i3 Keybinds|Sway Keybinds|DWM Keybinds|Emacs Leader Keybinds|Kitty Configuration|Cheatsheets Viewer|Documentation Viewer)$
         float = on
         center = on
         size = 55% = 66%

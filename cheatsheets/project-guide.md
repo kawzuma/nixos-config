@@ -54,7 +54,7 @@ High-level architecture
   - default.nix imports hardware.nix and host-packages.nix
   - variables.nix is the control panel for UX + feature toggles:
     - displayManager (greetd vs sddm)
-    - terminal/browser defaults (enable per-terminal via flags)
+    - terminal/browser defaults
     - waybarChoice, animChoice, stylixImage
     - 24h clock, thunarEnable, printEnable, NFS
     - intelID/nvidiaID for Prime offload
@@ -67,7 +67,7 @@ High-level architecture
   - nvidia-prime-drivers.nix exposes options.drivers.nvidia-prime.{enable,intelBusID,nvidiaBusID} consumed by the nvidia-laptop profile; nvidia-amd-hybrid.nix exposes options.drivers.nvidia-amd-hybrid.{enable,amdgpuBusID,nvidiaBusID} consumed by the amd-hybrid profile
   - vm-guest-services.nix enables qemu-guest, spice agents when vm.guest-services.enable = true
 - modules/home
-  - default.nix composes the user environment (Hyprland, Waybar via waybarChoice, Rofi, Yazi, Kitty/WezTerm/Ghostty/Alacritty toggles, Zsh/Bash config, Git, NVF/Neovim, OBS, swaync, scripts, Stylix, optional Doom Emacs/VSCodium/Helix)
+  - default.nix composes the user environment (Hyprland, Waybar via waybarChoice, Rofi, Kitty, Zsh/Bash config, Git, NVF/Neovim, OBS, swaync, scripts, Stylix, optional Doom Emacs/VSCodium/Helix)
   - scripts/default.nix installs user-space tools including zcli; zcli wraps rebuild/update/boot builds, cleanup, diagnostics, host management, and Doom Emacs lifecycle
 
 Where to change what

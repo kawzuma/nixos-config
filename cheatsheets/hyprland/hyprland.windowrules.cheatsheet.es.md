@@ -3,7 +3,7 @@
 # Reglas de Ventana de Hyprland — ZaneyOS
 ## 🧩 Etiquetas y Clasificación
 - file-manager — Thunar, Nautilus, PCManFM-Qt
-- terminal — Ghostty, WezTerm, Alacritty, Kitty, kitty-dropterm
+- terminal — Kitty, kitty-dropterm
 - browser — Brave, Firefox, Chrome, Thorium/Cachy
 - video — VLC, mpv, Clapper
 - projects — VSCodium/VSCode
