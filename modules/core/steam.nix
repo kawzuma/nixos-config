@@ -1,11 +1,11 @@
 {pkgs, ...}: {
   programs = {
     steam = {
-      enable = false;
+      enable = true;
       remotePlay.openFirewall = true;
       dedicatedServer.openFirewall = false;
       gamescopeSession.enable = true;
-      extraCompatPackages = [pkgs.proton-ge-bin];
+      extraCompatPackages = [pkgs.protonplus];
     };
 
     gamescope = {
