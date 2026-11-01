@@ -20,33 +20,29 @@
 in {
   imports =
     [
-      ./amfora.nix
       ./bash.nix
       ./bashrc-personal.nix
+      ./zshrc-personal.nix   # <-- added import for personal Zsh config
       ./overview.nix
       ./python.nix
       ./cli/bat.nix
       ./cli/btop.nix
-      ./cli/cava.nix
       ./emoji.nix
       ./eza.nix
       ./fastfetch
       ./cli/fzf.nix
       ./cli/gh.nix
-      ./cli/ghee.nix
       ./cli/git.nix
       ./gtk.nix
       ./cli/htop.nix
       ./hyprland
       ./terminals/kitty.nix
       ./cli/lazygit.nix
-      ./obs-studio.nix
       ./editors/nixvim.nix
       ./editors/nano.nix
       ./rofi
       ./qt.nix
       ./scripts
-      ./scripts/gemini-cli.nix
       ./stylix.nix
       ./swappy.nix
       ./swaync.nix
