@@ -16,6 +16,10 @@ in {
         default = "simple"; # Match modern push behavior
         autoSetupRemote = true; # Automatically set upstream on first push
       };
+      branch.main = {
+        remote = "origin";
+        merge = "refs/heads/main";
+      };
       credential.helper = "cache --timeout=7200";
       init.defaultBranch = "main"; # Set default new branches to 'main'
       log.decorate = "full"; # Show branch/tag info in git log
