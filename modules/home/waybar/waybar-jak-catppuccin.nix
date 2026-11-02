@@ -1,4 +1,8 @@
-{pkgs, ...}: let
+{
+  pkgs,
+  lib,
+  ...
+}: let
   # Install any helper scripts shipped in modules/home/waybar/scripts into ~/.config/waybar/scripts
   scriptsDir = ./scripts;
   scripts = builtins.attrNames (builtins.readDir scriptsDir);
@@ -456,7 +460,6 @@ in {
             "class<firefox-developer-edition>" = "🦊 ";
             "class<kitty|konsole>" = " ";
             "class<kitty-dropterm>" = " ";
-            "class<com.mitchellh.ghostty>" = " 󰊠";
             "class<org.wezfurlong.wezterm>" = " ";
             "class<Warp|warp|dev.warp.Warp|warp-terminal>" = "󰰭 ";
             "class<[Tt]hunderbird|[Tt]hunderbird-esr>" = " ";
@@ -536,8 +539,6 @@ in {
             "title<DWM Keybinds>" = " ";
             "title<Emacs Leader Keybinds>" = " ";
             "title<Kitty Configuration>" = " ";
-            "title<WezTerm Configuration>" = " ";
-            "title<Yazi Configuration>" = " ";
             "title<Cheatsheets Viewer>" = " ";
             "title<Documentation Viewer>" = " ";
             "title<^Wallpapers$>" = " ";
@@ -830,7 +831,7 @@ in {
         background: transparent;
         border-radius: 15px;
       }
-      #taskbar button:hover, #workspaces button:hover {
+      #workspaces button:hover {
         background: transparent;
         color: @flamingo;
         border-radius: 15px;

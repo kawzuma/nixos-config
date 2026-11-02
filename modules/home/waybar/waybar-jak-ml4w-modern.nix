@@ -741,7 +741,6 @@ in {
 
             "class<kitty|konsole>" = " ";
             "class<kitty-dropterm>" = " ";
-            "class<com.mitchellh.ghostty>" = " 󰊠";
             "class<org.wezfurlong.wezterm>" = " ";
             "class<Warp|warp|dev.warp.Warp|warp-terminal>" = "󰰭 ";
 
@@ -830,8 +829,6 @@ in {
             "title<DWM Keybinds>" = " ";
             "title<Emacs Leader Keybinds>" = " ";
             "title<Kitty Configuration>" = " ";
-            "title<WezTerm Configuration>" = " ";
-            "title<Yazi Configuration>" = " ";
             "title<Cheatsheets Viewer>" = " ";
             "title<Documentation Viewer>" = " ";
             "title<^Wallpapers$>" = " ";

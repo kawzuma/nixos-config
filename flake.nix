@@ -43,6 +43,12 @@
 
     # CachyOS kernel. Do NOT add "inputs.nixpkgs.follows" here (the author says it breaks things).
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    # FreeSM Launcher — Minecraft Java launcher (fork of PrismLauncher).
+    # Not in nixpkgs, so pull it from its own flake. No nixpkgs.follows here:
+    # if the build errors with "input 'nixpkgs' does not exist", the flake
+    # doesn't declare one and we must NOT add follows.
+    freesmlauncher.url = "github:FreesmTeam/FreesmLauncher";
   };
 
   outputs = {
@@ -79,14 +85,19 @@
     # kernel binaries for xddxdd/nix-cachyos-kernel. Combined with the pinned
     # overlay in hosts/nixos/kernel.nix, Nix fetches pre-built binaries instead
     # of compiling the kernel from source.
+    # The FreeSM Launcher cache (freesmlauncher.cachix.org) serves pre-built
+    # binaries for the `freesmlauncher` flake input, so flake-level commands
+    # (nix flake lock / nix build) also avoid compiling it from source.
     nixConfig = {
       substituters = [
         "https://cache.nixos.org"
         "https://cache.lantian.pub/lantian"
+        "https://freesmlauncher.cachix.org"
       ];
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
+        "freesmlauncher.cachix.org-1:Jcp5Q9wiLL+EDv8Mh7c6L9xGk+lXr7/otpKxMOuBuDs="
       ];
     };
 

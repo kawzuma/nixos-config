@@ -11,7 +11,7 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
   Usage: qs-keybinds [options]
 
   Options:
-    -m MODE  Mode to display (hyprland|emacs|kitty|wezterm|ghostty|yazi) (default: hyprland)
+    -m MODE  Mode to display (hyprland|emacs|kitty) (default: hyprland)
     -h       Show this help
   EOF
     }
@@ -42,8 +42,8 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
     done
 
     # Validate mode
-    if [[ "$MODE" != "hyprland" && "$MODE" != "emacs" && "$MODE" != "kitty" && "$MODE" != "wezterm" && "$MODE" != "ghostty" && "$MODE" != "yazi" ]]; then
-      echo "Error: Invalid mode '$MODE'. Use 'hyprland', 'emacs', 'kitty', 'wezterm', 'ghostty', or 'yazi'" >&2
+    if [[ "$MODE" != "hyprland" && "$MODE" != "emacs" && "$MODE" != "kitty" ]]; then
+      echo "Error: Invalid mode '$MODE'. Use 'hyprland', 'emacs', or 'kitty'" >&2
       exit 1
     fi
 
@@ -74,8 +74,8 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
       MODE_AVAILABLE=0
     fi
 
-    # For Kitty, WezTerm, Ghostty, and Yazi modes, also generate submode data when available
-    if [ "$MODE_AVAILABLE" -eq 1 ] && { [ "$MODE" = "kitty" ] || [ "$MODE" = "wezterm" ] || [ "$MODE" = "ghostty" ] || [ "$MODE" = "yazi" ]; }; then
+    # For Kitty mode, also generate submode data when available
+    if [ "$MODE_AVAILABLE" -eq 1 ] && [ "$MODE" = "kitty" ]; then
       ${pkgs.callPackage ./keybinds-parser.nix {}}/bin/keybinds-parser "$MODE" "summary" > "$tmpdir/summary.json" || true
       ${pkgs.callPackage ./keybinds-parser.nix {}}/bin/keybinds-parser "$MODE" "keybinds" > "$tmpdir/keybinds.json" || true
       ${pkgs.callPackage ./keybinds-parser.nix {}}/bin/keybinds-parser "$MODE" "colors" > "$tmpdir/colors.json" || true
@@ -112,9 +112,6 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
       hyprland) WINDOW_TITLE="Hyprland Keybinds" ;;
       emacs) WINDOW_TITLE="Emacs Leader Keybinds" ;;
       kitty) WINDOW_TITLE="Kitty Configuration" ;;
-      wezterm) WINDOW_TITLE="WezTerm Configuration" ;;
-      ghostty) WINDOW_TITLE="Ghostty Configuration" ;;
-      yazi) WINDOW_TITLE="Yazi Configuration" ;;
     esac
 
     # QML UI: Use template replacement to safely embed JSON
@@ -259,8 +256,8 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
 
     // Get unique categories from current keybinds data
     function getCategories() {
-      // For Kitty, WezTerm, Ghostty, and Yazi modes, show app-specific sub-modes instead of regular categories
-      if (selectedMode === "kitty" || selectedMode === "wezterm" || selectedMode === "ghostty" || selectedMode === "yazi") {
+      // For Kitty mode, show app-specific sub-modes instead of regular categories
+      if (selectedMode === "kitty") {
         return ["all", "summary", "keybinds", "colors"];
       }
 
@@ -453,66 +450,6 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
               }
               onClicked: { console.log("MODE:kitty"); Qt.quit(); }
             }
-
-            Button {
-              text: "WezTerm"
-              width: 120
-              height: 36
-              background: Rectangle {
-                color: selectedMode === "wezterm" ? "#66ccff" : "#444444"
-                radius: 6
-                border.width: 1
-                border.color: "#66ccff"
-              }
-              contentItem: Text {
-                text: parent.text
-                color: selectedMode === "wezterm" ? "#000000" : "#ffffff"
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-              }
-              onClicked: { console.log("MODE:wezterm"); Qt.quit(); }
-            }
-
-            Button {
-              text: "Ghostty"
-              width: 120
-              height: 36
-              background: Rectangle {
-                color: selectedMode === "ghostty" ? "#66ccff" : "#444444"
-                radius: 6
-                border.width: 1
-                border.color: "#66ccff"
-              }
-              contentItem: Text {
-                text: parent.text
-                color: selectedMode === "ghostty" ? "#000000" : "#ffffff"
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-              }
-              onClicked: { console.log("MODE:ghostty"); Qt.quit(); }
-            }
-
-            Button {
-              text: "Yazi"
-              width: 120
-              height: 36
-              background: Rectangle {
-                color: selectedMode === "yazi" ? "#66ccff" : "#444444"
-                radius: 6
-                border.width: 1
-                border.color: "#66ccff"
-              }
-              contentItem: Text {
-                text: parent.text
-                color: selectedMode === "yazi" ? "#000000" : "#ffffff"
-                font.pixelSize: 14
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-              }
-              onClicked: { console.log("MODE:yazi"); Qt.quit(); }
-            }
           }
         }
 
@@ -571,8 +508,8 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
                   onClicked: {
                     win.selectedCategory = modelData;
 
-                    // For Kitty, WezTerm, Ghostty, and Yazi modes, reload data with submode instead of just filtering
-                    if ((win.selectedMode === "kitty" || win.selectedMode === "wezterm" || win.selectedMode === "ghostty" || win.selectedMode === "yazi") && modelData !== "all") {
+                    // For Kitty mode, reload data with submode instead of just filtering
+                    if (win.selectedMode === "kitty" && modelData !== "all") {
                       win.selectedSubMode = modelData;
                       win.loadKeybindsDataWithSubMode(modelData);
                     } else {
@@ -737,20 +674,6 @@ pkgs.writeShellScriptBin "qs-keybinds" ''
         case "cyan": return "#00BCD4";
         case "white": return "#FAFAFA";
         case "terminal-colors": return "#607D8B";
-
-        // Yazi categories
-        case "manager": return "#4CAF50";
-        case "completion": return "#2196F3";
-        case "dialogs": return "#FF9800";
-        case "input": return "#9C27B0";
-        case "file-management": return "#607D8B";
-        case "theme": return "#E91E63";
-        case "keymaps": return "#795548";
-        case "status": return "#00BCD4";
-        case "filetype": return "#8BC34A";
-        case "mode": return "#FFC107";
-        case "confirm": return "#FF5722";
-        case "help": return "#9E9E9E";
 
         default: return "#757575";
       }

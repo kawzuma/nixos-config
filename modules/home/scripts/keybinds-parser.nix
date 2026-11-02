@@ -51,7 +51,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
                 # Category classification (reuse hyprland categories)
                 category = "hyprland"
                 low=tolower(act " " params " " desc)
-                if (act == "exec" && low ~ /(kitty|ghostty|wezterm|alacritty|foot)/) category="terminal"
+                if (act == "exec" && low ~ /(kitty|foot)/) category="terminal"
                 else if (act == "exec" && low ~ /(emacs|code|vscode|editor)/) category="editor"
                 else if (act == "exec" && low ~ /(rofi|wofi|dmenu|menu|launcher)/) category="launcher"
                 else if (act == "exec" && low ~ /(screenshot|screenshoot|hyprshot)/) category="screenshot"
@@ -159,7 +159,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
               gsub(/  +/, " ", description)  # Final space cleanup
 
               # Categorize based on action/description (improved logic)
-              if (match(action, /^exec$/) && match(description, /(terminal|foot|wezterm|ghostty|kitty)/)) category = "terminal"
+              if (match(action, /^exec$/) && match(description, /(terminal|foot|kitty)/)) category = "terminal"
               else if (match(action, /^exec$/) && match(description, /(emacs|vscode|editor)/)) category = "editor"
               else if (match(action, /^exec$/) && match(description, /(rofi|wofi|dmenu|menu|launcher)/)) category = "launcher"
               else if (match(action, /^exec$/) && match(description, /(screenshot|screenshoot)/)) category = "screenshot"
@@ -267,7 +267,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
             category="misc"
             if (action == "spawn") {
               low=tolower(args)
-              if (low ~ /(kitty|ghostty|wezterm|alacritty|foot)/) category="terminal"
+              if (low ~ /(kitty|foot)/) category="terminal"
               else if (low ~ /(emacs|code|vscode|nvim|vim)/) category="editor"
               else if (low ~ /(rofi|wofi|dmenu|launcher)/) category="launcher"
               else if (low ~ /(chrome|chromium|firefox|brave|browser)/) category="browser"
@@ -628,233 +628,6 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
             ;;
         esac
         ;;
-      ghostty)
-        # Parse Ghostty configuration (TOML)
-        GHOSTTY_CONFIG="$HOME/.config/ghostty/config"
-        if [[ ! -f "$GHOSTTY_CONFIG" ]]; then
-          echo "Error: Ghostty config not found at $GHOSTTY_CONFIG" >&2
-          exit 1
-        fi
-
-        case "$SUBMODE" in
-          summary)
-            # Extract basic settings from config
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1 }
-              /^[a-zA-Z_]+[ ]*=/ {
-                line=$0
-                if (match(line, /^([a-zA-Z_]+)[ ]*=[ ]*(.*)/, m)) {
-                  k=m[1]; v=m[2]
-                  gsub(/^[ ]+|[ ]+$/, "", k)
-                  gsub(/^[ ]+|[ ]+$/, "", v)
-                  # Clean quotes
-                  gsub(/^"|"$/, "", v)
-
-                  # Categorize
-                  cat="general"
-                  if (k ~ /font|font_size/) cat="font"
-                  else if (k ~ /color|palette/) cat="colors"
-                  else if (k ~ /window|padding/) cat="window"
-                  else if (k ~ /cursor/) cat="cursor"
-
-                  gsub(/\\/, "\\\\", k); gsub(/"/, "\\\"", k)
-                  gsub(/\\/, "\\\\", v); gsub(/"/, "\\\"", v)
-
-                  if (!first) print ","; first=0
-                  printf "{\"setting\":\"%s\",\"value\":\"%s\",\"category\":\"%s\"}", k, v, cat
-                }
-              }
-              END { print "\n]" }
-            ' "$GHOSTTY_CONFIG"
-            ;;
-          colors)
-            # Extract color hex codes
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1 }
-              /palette|background|foreground/ {
-                line=$0
-                if (match(line, /^([a-zA-Z_]+)[ ]*=[ ]*#([0-9a-fA-F]{6})/, m)) {
-                  k=m[1]; v="#" m[2]
-                  if (!first) print ","; first=0
-                  printf "{\"setting\":\"%s\",\"value\":\"%s\",\"category\":\"colors\"}", k, v
-                }
-              }
-              END { print "\n]" }
-            ' "$GHOSTTY_CONFIG"
-            ;;
-          *)
-            # keybinds submode: parse keybind entries
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1 }
-              /^keybind/ {
-                line=$0
-                # Parse: keybind = key:action
-                if (match(line, /keybind[ ]*=[ ]*([^:]+):(.*)/, m)) {
-                  key=m[1]; action=m[2]
-                  gsub(/^[ ]+|[ ]+$/, "", key)
-                  gsub(/^[ ]+|[ ]+$/, "", action)
-
-                  # Normalize key notation
-                  gsub(/cmd/, "Cmd", key)
-                  gsub(/ctrl/, "Ctrl", key)
-                  gsub(/shift/, "Shift", key)
-                  gsub(/alt/, "Alt", key)
-                  gsub(/\+/, " + ", key)
-
-                  # Categorize
-                  cat="misc"
-                  if (action ~ /copy|paste/) cat="clipboard"
-                  else if (action ~ /new|close|tab/) cat="tabs"
-                  else if (action ~ /split|pane|focus/) cat="panes"
-                  else if (action ~ /font|zoom/) cat="display"
-
-                  gsub(/\\/, "\\\\", key); gsub(/"/, "\\\"", key)
-                  gsub(/\\/, "\\\\", action); gsub(/"/, "\\\"", action)
-
-                  if (!first) print ","; first=0
-                  printf "{\"keybind\":\"%s\",\"description\":\"%s\",\"category\":\"%s\"}", key, action, cat
-                }
-              }
-              END { print "\n]" }
-            ' "$GHOSTTY_CONFIG"
-            ;;
-        esac
-        ;;
-      yazi)
-        # Parse Yazi configuration (TOML)
-        YAZI_KEYMAP="$HOME/.config/yazi/keymap.toml"
-        YAZI_THEME="$HOME/.config/yazi/theme.toml"
-        if [[ ! -f "$YAZI_KEYMAP" ]]; then
-          echo "Error: Yazi keymap not found at $YAZI_KEYMAP" >&2
-          exit 1
-        fi
-        if [[ ! -f "$YAZI_THEME" ]]; then
-          echo "Error: Yazi theme not found at $YAZI_THEME" >&2
-          exit 1
-        fi
-
-        case "$SUBMODE" in
-          summary)
-            # Extract basic settings and stats from both files
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1 }
-              END {
-                if (!first) print ","
-                printf "{\"setting\":\"keymap_sections\",\"value\":\"%d sections\",\"category\":\"keymaps\"}", sections
-                if (colors > 0) {
-                  print ","
-                  printf "{\"setting\":\"theme_colors\",\"value\":\"%d colors\",\"category\":\"theme\"}", colors
-                }
-                if (bindings > 0) {
-                  print ","
-                  printf "{\"setting\":\"total_keybindings\",\"value\":\"%d bindings\",\"category\":\"keymaps\"}", bindings
-                }
-                print "\n]"
-              }
-              # Count keymap sections and bindings
-              /^\[\[[a-zA-Z_]+\.keymap\]\]/ { sections++; bindings++ }
-              # Count theme colors
-              /fg = "#[0-9a-fA-F]{6}"/ { colors++ }
-              /bg = "#[0-9a-fA-F]{6}"/ { colors++ }
-            ' "$YAZI_KEYMAP" "$YAZI_THEME"
-            ;;
-          colors)
-            # Extract color hex codes from theme.toml
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1; in_section="" }
-
-              # Track current TOML section
-              /^\[([^\[]*)\]/ {
-                gsub(/\[|\]/, "", $0)
-                in_section=$0
-                next
-              }
-
-              # Match color definitions with hex values
-              /^[a-zA-Z_]+ = .*#[0-9a-fA-F]{6}/ {
-                line=$0
-                # Extract setting name and hex color
-                if (match(line, /^([a-zA-Z_]+) = .*"(#[0-9a-fA-F]{6})"/, m)) {
-                  setting=m[1]
-                  color=m[2]
-
-                  # Determine category based on TOML section
-                  cat="theme"
-                  if (in_section == "mgr") cat="manager"
-                  else if (in_section == "mode") cat="mode"
-                  else if (in_section == "status") cat="status"
-                  else if (in_section == "filetype") cat="filetype"
-                  else if (match(in_section, /^(input|pick|confirm|cmp|tasks|which|help|notify)$/)) cat=in_section
-
-                  if (!first) print ","; first=0
-                  printf "{\"setting\":\"%s\",\"value\":\"%s\",\"category\":\"%s\"}", setting, color, cat
-                }
-              }
-              END { print "\n]" }
-            ' "$YAZI_THEME"
-            ;;
-          *)
-            # keybinds submode: parse keymap.toml entries
-            ${pkgs.gawk}/bin/awk '
-              BEGIN { print "["; first=1; current_section="" }
-
-              # Match keymap sections like [[cmp.keymap]]
-              /^\[\[([a-zA-Z_]+)\.keymap\]\]/ {
-                gsub(/\[\[|\]\]/, "", $0)
-                gsub(/\.keymap/, "", $0)
-                current_section=$0
-                next
-              }
-
-              # Extract keymap entries within sections
-              current_section != "" {
-                if (/^desc = /) {
-                  gsub(/^desc = "|"+$/, "", $0)
-                  desc=$0
-                }
-                else if (/^on = /) {
-                  gsub(/^on = "|"+$/, "", $0)
-                  keybind=$0
-                  # Convert key notation
-                  gsub(/<C-/, "Ctrl+", keybind)
-                  gsub(/<A-/, "Alt+", keybind)
-                  gsub(/<S-/, "Shift+", keybind)
-                  gsub(/</, "", keybind)
-                  gsub(/>/, "", keybind)
-                }
-                else if (/^run = / && keybind != "" && desc != "") {
-                  gsub(/^run = "|"+$/, "", $0)
-                  action=$0
-
-                  # Build description
-                  description=desc
-                  if (action != "" && action != desc) description=desc " (" action ")"
-
-                  # Determine category based on section
-                  cat="misc"
-                  if (current_section == "manager") cat="file-management"
-                  else if (current_section == "cmp") cat="completion"
-                  else if (current_section == "confirm") cat="dialogs"
-                  else if (current_section == "help") cat="help"
-                  else if (current_section == "input") cat="input"
-                  else cat=current_section
-
-                  # JSON escape
-                  gsub(/\\/, "\\\\", keybind); gsub(/"/, "\\\"", keybind)
-                  gsub(/\\/, "\\\\", description); gsub(/"/, "\\\"", description)
-
-                  if (!first) print ","; first=0
-                  printf "{\"keybind\":\"%s\",\"description\":\"%s\",\"category\":\"%s\"}", keybind, description, cat
-
-                  # Reset for next entry
-                  keybind=""; desc=""; action=""
-                }
-              }
-              END { print "\n]" }
-            ' "$YAZI_KEYMAP"
-            ;;
-        esac
-        ;;
       sway)
         # Parse Sway config (bindsym/bindcode) from ~/.config/sway/config with fallback to repo config
         SWAY_CONFIG="$HOME/.config/sway/config"
@@ -936,7 +709,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
               # Categorize
               low=tolower(cmd)
               cat="sway"
-              if (low ~ /(kitty|ghostty|wezterm|alacritty|foot|st)( |$)/ || low ~ /exec[ ]+(kitty|ghostty|wezterm|alacritty|foot|st)/) cat="terminal"
+              if (low ~ /(kitty|foot|st)( |$)/ || low ~ /exec[ ]+(kitty|foot|st)/) cat="terminal"
               else if (low ~ /(emacs|code|vscode|nvim|vim|geany)/) cat="editor"
               else if (low ~ /(rofi|wofi|dmenu|launcher)/) cat="launcher"
               else if (low ~ /(grim|slurp|grimshot|screenshot)/) cat="screenshot"
@@ -988,7 +761,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
                 # Category heuristic
                 low=tolower(cmd)
                 cat="app"
-                if (low ~ /(kitty|wezterm|alacritty|foot|st)/) cat="terminal"
+                if (low ~ /(kitty|foot|st)/) cat="terminal"
                 else if (low ~ /(emacs|code|vscode|gedit|nvim|vim)/) cat="editor"
                 else if (low ~ /(rofi|wofi|dmenu)/) cat="launcher"
                 else if (low ~ /(bspc|desktop|node|window|monocle|tiled|fullscreen)/) cat="window"
@@ -1048,7 +821,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
                 desc="Run: " cmd
                 low=tolower(cmd)
                 cat="app"
-                if (low ~ /(kitty|wezterm|alacritty|foot|st|ghostty)/) cat="terminal"
+                if (low ~ /(kitty|foot|st)/) cat="terminal"
                 else if (low ~ /(emacs|code|vscode|gedit|nvim|vim|geany)/) cat="editor"
                 else if (low ~ /(rofi|wofi|dmenu)/) cat="launcher"
                 else if (low ~ /(thunar|nautilus|dolphin)/) cat="app"
@@ -1114,7 +887,7 @@ pkgs.writeShellScriptBin "keybinds-parser" ''
                 # Category heuristic
                 low=tolower(cmd)
                 cat="app"
-                if (low ~ /(kitty|wezterm|alacritty|foot|st)/) cat="terminal"
+                if (low ~ /(kitty|foot|st)/) cat="terminal"
                 else if (low ~ /(emacs|code|vscode|gedit|nvim|vim)/) cat="editor"
                 else if (low ~ /(rofi|wofi|dmenu)/) cat="launcher"
                 else if (low ~ /(dwmc|dwm|wm)/) cat="dwm"

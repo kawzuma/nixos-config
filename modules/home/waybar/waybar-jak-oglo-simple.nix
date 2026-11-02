@@ -4,469 +4,61 @@
   ...
 }:
 with lib; let
-  # Install Waybar helper scripts under ~/.config/waybar/scripts (needed for power-menu.sh)
+  # Install helper scripts and provide an inline Waybar CAVA script like in Catppuccin config
   scriptsDir = ./scripts;
   scripts = builtins.attrNames (builtins.readDir scriptsDir);
+  waybarCava = pkgs.writeShellScriptBin "WaybarCava" ''
+    set -euo pipefail
 
-  # Import upstream wallust color variables and base style from the source theme
-  wallustColors = ''
-    /* ---- 💫 https://github.com/JaKooLit 💫 ---- */
-     /* wallust template - colors-waybar */
+    if ! command -v cava >/dev/null 2>&1; then
+      echo "cava not found in PATH" >&2
+      exit 1
+    fi
 
-     @define-color foreground #DADDF8;
-     @define-color background #1A1921;
-     @define-color background-alt rgba(26,25,33,0.25);
-     @define-color cursor #7B7EA0;
+    bar="▁▂▃▄▅▆▇█"
+    dict="s/;//g"
+    bar_length=''${#bar}
+    for ((i = 0; i < bar_length; i++)); do
+      dict+=";s/$i/''${bar:$i:1}/g"
+    done
 
-     @define-color color0 #413F48;
-     @define-color color1 #0F102E;
-     @define-color color2 #151636;
-     @define-color color3 #3F3683;
-     @define-color color4 #404470;
-     @define-color color5 #646AA1;
-     @define-color color6 #7177B1;
-     @define-color color7 #C2C7ED;
-     @define-color color8 #888BA6;
-     @define-color color9 #13153E;
-     @define-color color10 #1C1E49;
-     @define-color color11 #5448AF;
-     @define-color color12 #555A95;
-     @define-color color13 #868ED6;
-     @define-color color14 #969FEC;
-     @define-color color15 #C2C7ED;
-  '';
+    RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/tmp}"
+    pidfile="$RUNTIME_DIR/waybar-cava.pid"
+    if [ -f "$pidfile" ]; then
+      oldpid=$(cat "$pidfile" || true)
+      if [ -n "''${oldpid:-}" ] && kill -0 "$oldpid" 2>/dev/null; then
+        kill "$oldpid" 2>/dev/null || true
+        sleep 0.1 || true
+      fi
+    fi
+    echo $$ > "$pidfile"
 
-  baseStyle = ''
-    /* ---- 💫 https://github.com/JaKooLit 💫 ---- */
-    /* Oglo Chicklets */
-
-    * {
-        font-family: "JetBrainsMono Nerd Font", FontAwesome, Roboto, Helvetica, Arial, sans-serif;
-        font-size: 97%;
-        font-weight: bold;
+    config_file=$(mktemp "''${RUNTIME_DIR}/waybar-cava.XXXXXX.conf")
+    cleanup() {
+      rm -f "$config_file" "$pidfile"
     }
+    trap cleanup EXIT INT TERM
 
-    window#waybar {
-        background-color: #232a2e;
-        border-bottom: 8px solid #1d2327;
-        color: #d3c6aa;
-        transition-property: background-color;
-        transition-duration: .5s;
-    }
+    cat >"$config_file" <<EOF
+    [general]
+    framerate = 30
+    bars = 10
 
-    window#waybar.hidden {
-        opacity: 0.2;
-    }
+    [input]
+    method = pulse
+    source = auto
 
-    /*
-    window#waybar.empty {
-        background-color: transparent;
-    }
-    window#waybar.solo {
-        background-color: #FFFFFF;
-    }
-    */
+    [output]
+    method = raw
+    raw_target = /dev/stdout
+    data_format = ascii
+    ascii_max_range = 7
+    EOF
 
-    button {
-        all: unset;
-        background-color: #778f52;
-        color: #2d353b;
-        border: none;
-        border-bottom: 8px solid #5d743e;
-        border-radius: 5px;
-        padding-left: 15px;
-        padding-right: 15px;
-        transition: transform 0.1s ease-in-out;
-    }
-
-    button:hover {
-        background: inherit;
-        background-color: #92ab6c;
-        border-bottom: 8px solid #788f57;
-    }
-
-    button.active {
-        background: inherit;
-        background-color: #a5be7e;
-        border-bottom: 8px solid #8aa168;
-    }
-
-    #mode {
-        background-color: #64727D;
-        border-bottom: 3px solid #ffffff;
-    }
-
-    #backlight,
-    #backlight-slider,
-    #battery,
-    #bluetooth,
-    #clock,
-    #cpu,
-    #disk,
-    #idle_inhibitor,
-    #keyboard-state,
-    #memory,
-    #mode,
-    #mpris,
-    #network,
-    #power-profiles-daemon,
-    #pulseaudio,
-    #pulseaudio-slider,
-    #taskbar,
-    #temperature,
-    #tray,
-    #window,
-    #wireplumber,
-    #workspaces,
-    #custom-backlight,
-    #custom-browser,
-    #custom-cava_mviz,
-    #custom-cycle_wall,
-    #custom-dot_update,
-    #custom-file_manager,
-    #custom-keybinds,
-    #custom-keyboard,
-    #custom-light_dark,
-    #custom-lock,
-    #custom-hint,
-    #custom-hypridle,
-    #custom-menu,
-    #custom-playerctl,
-    #custom-power_vertical,
-    #custom-power,
-    #custom-quit,
-    #custom-reboot,
-    #custom-settings,
-    #custom-spotify,
-    #custom-swaync,
-    #custom-tty,
-    #custom-updater,
-    #custom-hyprpicker,
-    #custom-weather,
-    #custom-weather.clearNight,
-    #custom-weather.cloudyFoggyDay,
-    #custom-weather.cloudyFoggyNight,
-    #custom-weather.default,
-    #custom-weather.rainyDay,
-    #custom-weather.rainyNight,
-    #custom-weather.severe,
-    #custom-weather.showyIcyDay,
-    #custom-weather.snowyIcyNight,
-    #custom-weather.sunnyDay{
-        color: #ffffff;
-        padding-top: 2px;
-        padding-bottom: 2px;
-        border-radius: 5px;
-    	padding-left: 5px;
-    	padding-right: 5px;
-    }
-
-    #window,
-    #workspaces {
-        margin: 0 4px;
-    }
-
-    /* If workspaces is the leftmost module, omit left margin */
-    .modules-left > widget:first-child > #workspaces {
-        margin-left: 0;
-    }
-
-    /* If workspaces is the rightmost module, omit right margin */
-    .modules-right > widget:last-child > #workspaces {
-        margin-right: 0;
-    }
-
-    #window {
-        background-color: #343f44;
-        color: #d3c6aa;
-        border-bottom: 8px solid #2b3539;
-    }
-
-    #custom-swaync {
-        background-color: #778f52;
-        color: #2d353b;
-        border-bottom: 8px solid #5d743e;
-    }
-
-    #custom-menu {
-        background-color: #778f52;
-        color: #2d353b;
-        border-bottom: 8px solid #5d743e;
-    }
-
-    #custom-power {
-        background-color: #ee606a;
-        color: #2d353b;
-        border-bottom: 8px solid #ca4853;
-        padding-left: 10px;
-    }
-
-    #custom-power_vertical{
-        background-color: #ee606a;
-        color: #2d353b;
-        border-bottom: 8px solid #ca4853;
-    }
-
-    #clock {
-        background-color: #96a84c;
-        color: #2d353b;
-        border-bottom: 8px solid #7a8c37;
-    }
-
-    #battery {
-        background-color: #3a998f;
-        color: #2d353b;
-        border-bottom: 8px solid #227d74;
-    }
-
-    @keyframes blink {
-        to {
-            background-color: #ffffff;
-            color: #000000;
-        }
-    }
-
-    #battery.critical:not(.charging) {
-        background-color: #ee606a;
-        color: #2d353b;
-        border-bottom: 8px solid #ca4853;
-        animation-name: blink;
-    	animation-duration: 3.0s;
-    	animation-timing-function: steps(12);
-    	animation-iteration-count: infinite;
-    	animation-direction: alternate;
-    }
-
-    label:focus {
-        background-color: #000000;
-    }
-
-    #cpu {
-        background-color: #778f52;
-        color: #2d353b;
-        border-bottom: 8px solid #5d743e;
-    }
-
-    #memory {
-        background-color: #d980ad;
-        color: #2d353b;
-        border-bottom: 8px solid #b86790;
-    }
-
-    #disk {
-        background-color: #964B00;
-        border-bottom: 8px solid #793300;
-    }
-
-    #custom-lock,
-    #custom-light_dark,
-    #backlight {
-        background-color: #64b6ac;
-        color: #2d353b;
-        border-bottom: 8px solid #4f9990;
-        padding-left: 10px;
-    }
-
-    #network {
-        background-color: #2980b9;
-    }
-
-    #network.disconnected {
-        background-color: #f53c3c;
-    }
-
-    #pulseaudio {
-        background-color: #d8ac47;
-        color: #2d353b;
-        border-bottom: 8px solid #b78f30;
-    }
-
-    #pulseaudio.muted {
-        background-color: #90b1b1;
-        color: #2a5c45;
-    }
-
-    #wireplumber {
-        background-color: #fff0f5;
-        color: #000000;
-    }
-
-    #wireplumber.muted {
-        background-color: #f53c3c;
-    }
-
-    #custom-media {
-        background-color: #66cc99;
-        color: #2a5c45;
-        min-width: 100px;
-    }
-
-    #custom-media.custom-spotify {
-        background-color: #66cc99;
-    }
-
-    #custom-media.custom-vlc {
-        background-color: #ffa000;
-    }
-
-    #temperature {
-        background-color: #f0932b;
-        border-bottom: 8px solid #b78f30;
-    }
-
-    #temperature.critical {
-        background-color: #eb4d4b;
-    }
-
-    #tray {
-        background-color: #e67f51;
-        color: #2d353b;;
-        border-bottom: 8px solid #c3653b;
-    }
-
-    #tray > .passive {
-        -gtk-icon-effect: dim;
-    }
-
-    #tray > .needs-attention {
-        -gtk-icon-effect: highlight;
-        background-color: #eb4d4b;
-    }
-
-    #idle_inhibitor {
-        background-color: #2d3436;
-    }
-
-    #idle_inhibitor.activated {
-        background-color: #ecf0f1;
-        color: #2d3436;
-    }
-
-    #mpd {
-        background-color: #66cc99;
-        color: #2a5c45;
-    }
-
-    #mpd.disconnected {
-        background-color: #f53c3c;
-    }
-
-    #mpd.stopped {
-        background-color: #90b1b1;
-    }
-
-    #mpd.paused {
-        background-color: #51a37a;
-    }
-
-    #language {
-        background: #00b093;
-        color: #740864;
-        min-width: 16px;
-    }
-
-    #keyboard-state {
-        background: #97e1ad;
-        color: #000000;
-        min-width: 16px;
-        border-bottom: 8px solid #78b48a;
-    }
-
-    #keyboard-state > label {
-        padding: 0 5px;
-    }
-
-    #keyboard-state > label.locked {
-        background: rgba(0, 0, 0, 0.2);
-    }
-
-    #scratchpad {
-        background: rgba(0, 0, 0, 0.2);
-    }
-
-    #scratchpad.empty {
-    	background-color: transparent;
-    }
-
-    tooltip {
-      background-color: #232a2e;
-      border: none;
-      border-bottom: 8px solid #1d2327;
-    }
-
-    tooltip decoration {
-      box-shadow: none;
-    }
-
-    tooltip decoration:backdrop {
-      box-shadow: none;
-    }
-
-    tooltip label {
-      color: #d3c6aa;
-      padding-left: 5px;
-      padding-right: 5px;
-      padding-top: 0px;
-      padding-bottom: 5px;
-    }
-
-
-    #pulseaudio-slider slider {
-    	min-width: 0px;
-    	min-height: 0px;
-    	opacity: 0;
-    	background-image: none;
-    	border: none;
-    	box-shadow: none;
-    }
-
-    #pulseaudio-slider trough {
-    	background-color: #7f849c;
-    	min-width: 80px;
-    	min-height: 5px;
-    	border-radius: 5px;
-    }
-
-    #pulseaudio-slider highlight {
-    	min-height: 10px;
-    	border-radius: 5px;
-    }
-
-    #backlight-slider slider {
-    	min-width: 0px;
-    	min-height: 0px;
-    	opacity: 0;
-    	background-image: none;
-    	border: none;
-    	box-shadow: none;
-    }
-
-    #backlight-slider trough {
-    	background-color: #7f849c;
-    	min-width: 80px;
-    	min-height: 10px;
-    	border-radius: 5px;
-    }
-
-    #backlight-slider highlight {
-    	min-width: 10px;
-    	border-radius: 5px;
-    }
-  '';
-
-  # Explicit overrides for notification coffee mug colors (red when inactive/no notifications, green when active/has notifications)
-  overrides = ''
-    /* Coffee mug notification colors */
-    #custom-swaync { color: #ee606a; } /* default red */
-    #custom-swaync.none,
-    #custom-swaync.dnd-none,
-    #custom-swaync.inhibited-none { color: #ee606a; }
-    #custom-swaync.notification,
-    #custom-swaync.dnd-notification,
-    #custom-swaync.inhibited-notification { color: #00f769; }
+    exec cava -p "$config_file" | sed -u "$dict"
   '';
 in {
-  # Install scripts (power-menu.sh, etc.)
+  # Ensure bundled Waybar scripts are installed under ~/.config/waybar/scripts
   home.file = builtins.listToAttrs (
     map (name: {
       name = ".config/waybar/scripts/" + name;
@@ -477,7 +69,6 @@ in {
     })
     scripts
   );
-
   programs.waybar = {
     enable = true;
     package = pkgs.waybar;
@@ -485,39 +76,100 @@ in {
     settings = [
       {
         layer = "top";
-        position = "top";
         # mode = "dock";
         exclusive = true;
         passthrough = false;
-        "gtk-layer-shell" = true;
-        "margin-left" = 6;
-        "margin-right" = 6;
-        "margin-top" = 2;
+        position = "top";
+        spacing = 3;
+        "fixed-center" = true;
+        ipc = true;
+        "margin-top" = 3;
+        "margin-left" = 8;
+        "margin-right" = 8;
 
-        # Layout
         "modules-left" = [
-          "idle_inhibitor"
-          "group/mobo_drawer"
-          "hyprland/workspaces#rw"
-          "tray"
-          "mpris"
+          "custom/startmenu"
+          "group/app_drawer"
+          "custom/separator#blank"
+          "custom/cava_mviz"
+          "custom/separator#blank"
+          "custom/playerctl"
+          "custom/separator#blank_2"
+          "hyprland/window"
         ];
+
         "modules-center" = [
-          "clock#2"
+          "custom/separator#blank"
           "group/notify"
+          "custom/separator#dot-line"
+          "hyprland/workspaces#rw"
+          "clock"
+          "custom/separator#dot-line"
+          "custom/separator#dot-line"
+          "idle_inhibitor"
           "custom/weather"
         ];
+
         "modules-right" = [
-          "hyprland/window"
-          "battery"
+          "tray"
+          "custom/separator#dot-line"
+          "group/laptop"
+          "custom/separator#dot-line"
+          "group/mobo_drawer"
+          "custom/separator#line"
           "group/audio"
-          "custom/power"
+          "custom/separator#dot-line"
+          "group/status"
         ];
 
-        # Module definitions (subset needed by this layout)
-        battery = {
+        # Modules (from Modules)
+        temperature = {
+          interval = 10;
+          tooltip = true;
+          "hwmon-path" = [
+            "/sys/class/hwmon/hwmon1/temp1_input"
+            "/sys/class/thermal/thermal_zone0/temp"
+          ];
+          "critical-threshold" = 82;
+          "format-critical" = "{temperatureC}°C {icon}";
+          format = "{temperatureC}°C {icon}";
+          "format-icons" = ["󰈸"];
+          "on-click-right" = "$HOME/.config/hypr/scripts/WaybarScripts.sh --nvtop";
+        };
+
+        backlight = {
+          interval = 2;
           align = 0;
           rotate = 0;
+          "format-icons" = [
+            " "
+            " "
+            " "
+            "󰃝 "
+            "󰃞 "
+            "󰃟 "
+            "󰃠 "
+          ];
+          format = "{icon}";
+          "tooltip-format" = "backlight {percent}%";
+          "icon-size" = 10;
+          "on-scroll-up" = "$HOME/.config/hypr/scripts/Brightness.sh --inc";
+          "on-scroll-down" = "$HOME/.config/hypr/scripts/Brightness.sh --dec";
+          "smooth-scrolling-threshold" = 1;
+        };
+
+        "backlight#2" = {
+          device = "intel_backlight";
+          format = "{icon} {percent}%";
+          "format-icons" = [
+            ""
+            ""
+          ];
+        };
+
+        battery = {
+          # bat = "BAT1";
+          # adapter = "ACAD";
           "full-at" = 100;
           "design-capacity" = false;
           states = {
@@ -547,23 +199,64 @@ in {
           "format-time" = "{H}h {M}min";
           tooltip = true;
           "tooltip-format" = "{timeTo} {power}w";
-          "on-click-middle" = "$HOME/.config/hypr/scripts/ChangeBlur.sh";
           "on-click-right" = "$HOME/.config/hypr/scripts/Wlogout.sh";
         };
 
-        "clock#2" = {
-          format = " {:%I:%M %p}";
-          "format-alt" = "{:%A  |  %H:%M  |  %e %B}";
-          "tooltip-format" = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
+        bluetooth = {
+          format = " ";
+          "format-disabled" = "󰂳";
+          "format-connected" = "󰂱 {num_connections}";
+          "tooltip-format" = " {device_alias}";
+          "tooltip-format-connected" = "{device_enumerate}";
+          "tooltip-format-enumerate-connected" = " {device_alias} 󰂄{device_battery_percentage}%";
+          tooltip = true;
+          "on-click" = "blueman-manager";
         };
 
-        cpu = {
+        clock = {
+          interval = 1;
+          format = '' {:%I:%M %p}''; # AM/PM
+          "format-alt" = '' {:%H:%M   %Y, %d %B, %A}'';
+          "tooltip-format" = "<tt><small>{calendar}</small></tt>";
+          calendar = {
+            mode = "year";
+            "mode-mon-col" = 3;
+            "weeks-pos" = "right";
+            "on-scroll" = 1;
+            format = {
+              months = "<span color='#ffead3'><b>{}</b></span>";
+              days = "<span color='#ecc6d9'><b>{}</b></span>";
+              weeks = "<span color='#99ffdd'><b>W{:%V}</b></span>";
+              weekdays = "<span color='#ffcc66'><b>{}</b></span>";
+              today = "<span color='#ff6699'><b><u>{}</u></b></span>";
+            };
+          };
+        };
+
+        "actions" = {
+          "on-click-right" = "mode";
+          "on-click-forward" = "tz_up";
+          "on-click-backward" = "tz_down";
+          "on-scroll-up" = "shift_up";
+          "on-scroll-down" = "shift_down";
+        };
+
+        "cpu" = {
           format = "{usage}% 󰍛";
           interval = 1;
           "min-length" = 5;
           "format-alt-click" = "click";
           "format-alt" = "{icon0}{icon1}{icon2}{icon3} {usage:>2}% 󰍛";
-          "format-icons" = ["▁" "▂" "▃" "▄" "▅" "▆" "▇" "█"];
+          "format-icons" = [
+            "▁"
+            "▂"
+            "▃"
+            "▄"
+            "▅"
+            "▆"
+            "▇"
+            "█"
+          ];
           "on-click-right" = "gnome-system-monitor";
         };
 
@@ -574,60 +267,17 @@ in {
           "tooltip-format" = "{used} used out of {total} on {path} ({percentage_used}%)";
         };
 
-        "hyprland/workspaces#rw" = {
-          "disable-scroll" = true;
-          "all-outputs" = true;
-          "warp-on-scroll" = false;
-          "sort-by-number" = true;
-          "show-special" = false;
-          "on-click" = "activate";
-          "on-scroll-up" = "hyprctl dispatch workspace e+1";
-          "on-scroll-down" = "hyprctl dispatch workspace e-1";
-          "persistent-workspaces" = {"*" = 5;};
-          format = "{icon} {windows}";
-          "format-window-separator" = " ";
-          "window-rewrite-default" = " ";
-          "window-rewrite" = {
-            "(.*) — Mozilla Firefox" = " $1";
-            "(.*) - fish" = "> [$1]";
-            "(.*) - zsh" = "> [$1]";
-            "class<Warp|warp|dev.warp.Warp|warp-terminal>" = "󰰭 ";
-            "class<com.mitchellh.ghostty>" = " 󰊠";
-            "class<remote-viewer|virt-viewer>" = " ";
-            "class<helium>" = " ";
-            "class<[Ss]ignal|signal-desktop|org.signal.Signal>" = "󰍩 ";
-            "title<.*Signal.*>" = "󰍩 ";
-            "class<remmina|org.remmina.Remmina>" = "🖥️ ";
-            "class<[Kk]denlive|org.kde.kdenlive>" = "🎬 ";
-            "title<.*Kdenlive.*>" = "🎬 ";
+        "hyprland/language" = {
+          format = "Lang: {}";
+          "format-en" = "US";
+          "format-tr" = "Korea";
+          "keyboard-name" = "at-translated-set-2-keyboard";
+          "on-click" = "hyprctl switchxkblayout $SET_KB next";
+        };
 
-            # qs-* apps
-            "title<Hyprland Keybinds>" = " ";
-            "title<Niri Keybinds>" = " ";
-            "title<BSPWM Keybinds>" = " ";
-            "title<DWM Keybinds>" = " ";
-            "title<Emacs Leader Keybinds>" = " ";
-            "title<Kitty Configuration>" = " ";
-            "title<WezTerm Configuration>" = " ";
-            "title<Yazi Configuration>" = " ";
-            "title<Cheatsheets Viewer>" = " ";
-            "title<Documentation Viewer>" = " ";
-            "title<^Wallpapers$>" = " ";
-            "title<^Video Wallpapers$>" = " ";
-            "title<^qs-wlogout$>" = " ";
-
-            # BoxBuddy
-            "class<[Bb]ox[Bb]uddy|io.github.dvlv.boxbuddy|io.github.dvlv.BoxBuddy>" = " ";
-            "title<.*BoxBuddy.*>" = " ";
-
-            # Bazaar software store
-            "class<io.github.kolunmi.Bazaar>" = " ";
-            "title<^Bazaar$>" = " ";
-
-            # satty screenshot tool
-            "class<com.gabm.satty>" = " ";
-            "title<^satty$>" = " ";
-          };
+        "hyprland/submap" = {
+          format = ''<span style="italic">  {}</span>'';
+          tooltip = false;
         };
 
         "hyprland/window" = {
@@ -636,6 +286,12 @@ in {
           "separate-outputs" = true;
           "offscreen-css" = true;
           "offscreen-css-text" = "(inactive)";
+          rewrite = {
+            "(.*) — Mozilla Firefox" = " $1";
+            "(.*) - fish" = "> [$1]";
+            "(.*) - zsh" = "> [$1]";
+            "(.*) - $term" = "> [$1]";
+          };
         };
 
         idle_inhibitor = {
@@ -644,8 +300,20 @@ in {
           "tooltip-format-deactivated" = "Idle_inhibitor not active";
           format = "{icon}";
           "format-icons" = {
-            activated = " ";
-            deactivated = " ";
+            activated = " ";
+            deactivated = " ";
+          };
+        };
+
+        "keyboard-state" = {
+          capslock = true;
+          format = {
+            numlock = "N {icon}";
+            capslock = "󰪛 {icon}";
+          };
+          "format-icons" = {
+            locked = "";
+            unlocked = "";
           };
         };
 
@@ -656,14 +324,7 @@ in {
           "format-alt-click" = "click";
           tooltip = true;
           "tooltip-format" = "{used:0.1f}GB/{total:0.1f}G";
-          "on-click-right" = "$HOME/.config/hypr/scripts/WaybarScripts.sh --btop";
-        };
-
-        "custom/weather" = {
-          "return-type" = "json";
-          exec = "sh -lc 'WEATHER_ICON_STYLE=emoji WEATHER_TOOLTIP_MARKUP=1 ~/.local/bin/weather'";
-          interval = 600;
-          tooltip = true;
+          "on-click-right" = "kitty -e btop";
         };
 
         mpris = {
@@ -694,7 +355,63 @@ in {
             playing = "";
             stopped = "";
           };
+          # "ignored-players" = [ "firefox" ];
           "max-length" = 30;
+        };
+
+        network = {
+          format = "{ifname}";
+          "format-wifi" = "{icon}";
+          "format-ethernet" = "󰌘";
+          "format-disconnected" = "󰌙";
+          "tooltip-format" = "{ipaddr}  {bandwidthUpBits}  {bandwidthDownBits}";
+          "format-linked" = "󰈁 {ifname} (No IP)";
+          "tooltip-format-wifi" = "{essid} {icon} {signalStrength}%";
+          "tooltip-format-ethernet" = "{ifname} 󰌘";
+          "tooltip-format-disconnected" = "󰌙 Disconnected";
+          "max-length" = 30;
+          "format-icons" = [
+            "󰤯"
+            "󰤟"
+            "󰤢"
+            "󰤥"
+            "󰤨"
+          ];
+          "on-click-right" = " kitty -e nmtui";
+        };
+
+        "network#speed" = {
+          interval = 1;
+          format = "{ifname}";
+          "format-wifi" = "{icon}  {bandwidthUpBytes}  {bandwidthDownBytes}";
+          "format-ethernet" = "󰌘  {bandwidthUpBytes}  {bandwidthDownBytes}";
+          "format-disconnected" = "󰌙";
+          "tooltip-format" = "{ipaddr}";
+          "format-linked" = "󰈁 {ifname} (No IP)";
+          "tooltip-format-wifi" = "{essid} {icon} {signalStrength}%";
+          "tooltip-format-ethernet" = "{ifname} 󰌘";
+          "tooltip-format-disconnected" = "󰌙 Disconnected";
+          "min-length" = 24;
+          "max-length" = 24;
+          "format-icons" = [
+            "󰤯"
+            "󰤟"
+            "󰤢"
+            "󰤥"
+            "󰤨"
+          ];
+        };
+
+        "power-profiles-daemon" = {
+          format = "{icon} ";
+          "tooltip-format" = "Power profile: {profile}\nDriver: {driver}";
+          tooltip = true;
+          "format-icons" = {
+            default = "";
+            performance = "";
+            balanced = "";
+            "power-saver" = "";
+          };
         };
 
         pulseaudio = {
@@ -708,7 +425,12 @@ in {
             phone = "";
             portable = "";
             car = "";
-            default = ["" "" "󰕾" ""];
+            default = [
+              ""
+              ""
+              "󰕾"
+              ""
+            ];
             "ignored-sinks" = ["Easy Effects Sink"];
           };
           "scroll-step" = 5.0;
@@ -737,44 +459,99 @@ in {
           spacing = 4;
         };
 
-        # Groups
-        "group/mobo_drawer" = {
-          orientation = "inherit";
-          drawer = {
-            "transition-duration" = 500;
-            "children-class" = "cpu";
-            "transition-left-to-right" = true;
-          };
-          modules = ["temperature" "cpu" "power-profiles-daemon" "memory" "disk"];
+        "wlr/taskbar" = {
+          format = "{icon} {name}";
+          "icon-size" = 16;
+          "all-outputs" = false;
+          "tooltip-format" = "{title}";
+          "on-click" = "activate";
+          "on-click-middle" = "close";
+          "ignore-list" = [
+            "wofi"
+            "rofi"
+            "kitty"
+            "kitty-dropterm"
+          ];
         };
 
-        "group/audio" = {
-          orientation = "inherit";
-          drawer = {
-            "transition-duration" = 500;
-            "children-class" = "pulseaudio";
-            "transition-left-to-right" = true;
-          };
-          modules = ["pulseaudio" "pulseaudio#microphone"];
+        # Modules (from ModulesCustom)
+        "custom/weather" = {
+          format = "{}";
+          "format-alt" = "{alt}: {}";
+          "format-alt-click" = "click";
+          interval = 3600;
+          "return-type" = "json";
+          exec = "$HOME/.config/hypr/UserScripts/Weather.py";
+          tooltip = true;
         };
 
-        "group/notify" = {
-          orientation = "inherit";
-          drawer = {
-            "transition-duration" = 500;
-            "children-class" = "custom/swaync";
-            "transition-left-to-right" = false;
-          };
-          modules = ["custom/swaync" "custom/dot_update"];
+        "custom/hyprpicker" = {
+          format = "";
+          "on-click" = "hyprpicker | wl-copy";
+          tooltip = true;
+          "tooltip-format" = "Hyprpicker";
         };
 
-        # Custom modules
+        "custom/hypridle" = {
+          format = "󱫗 ";
+          "return-type" = "json";
+          escape = true;
+          "exec-on-event" = true;
+          interval = 60;
+          exec = "$HOME/.config/hypr/scripts/Hypridle.sh status";
+          "on-click" = "$HOME/.config/hypr/scripts/Hypridle.sh toggle";
+          "on-click-right" = "hyprlock";
+        };
+
+        "custom/lock" = {
+          format = "󰌾";
+          "on-click" = "$HOME/.config/hypr/scripts/LockScreen.sh";
+          tooltip = true;
+          "tooltip-format" = "󰷛 Screen Lock";
+        };
+
+        "custom/menu" = {
+          format = "  ";
+          # "on-click" = "pkill rofi || rofi -show drun -modi run,drun,filebrowser,window";
+          "on-click" = "launch-nwg-menu";
+          "on-click-middle" = "$HOME/.config/hypr/UserScripts/WallpaperSelect.sh";
+          "on-click-right" = "$HOME/.config/hypr/scripts/WaybarLayout.sh";
+          tooltip = true;
+          "tooltip-format" = "Left Click: Rofi Menu\nMiddle Click: Wallpaper Menu\nRight Click: Waybar Layout Menu";
+        };
+
+        "custom/cava_mviz" = {
+          exec = "${waybarCava}/bin/WaybarCava";
+          format = "{}";
+        };
+
+        "custom/playerctl" = {
+          format = "<span>{}</span>";
+          "return-type" = "json";
+          "max-length" = 25;
+          exec = ''playerctl -a metadata --format '{"text": "{{artist}}  {{markup_escape(title)}}", "tooltip": "{{playerName}} : {{markup_escape(title)}}", "alt": "{{status}}", "class": "{{status}}"}' -F'';
+          "on-click-middle" = "playerctl play-pause";
+          "on-click" = "playerctl previous";
+          "on-click-right" = "playerctl next";
+          "scroll-step" = 5.0;
+          "on-scroll-up" = "$HOME/.config/hypr/scripts/Volume.sh --inc";
+          "on-scroll-down" = "$HOME/.config/hypr/scripts/Volume.sh --dec";
+          "smooth-scrolling-threshold" = 1;
+        };
+
         "custom/power" = {
           format = " ⏻ ";
           "on-click" = "qs-wlogout";
           "on-click-right" = "~/.config/waybar/scripts/power-menu.sh";
           tooltip = true;
-          "tooltip-format" = "Power menu: Left-click for QS logout, Right-click for rofi power menu";
+          "tooltip-format" = "Left Click: Power Menu (qs-wlogout)\nRight Click: Rofi Power Menu";
+        };
+
+        "custom/reboot" = {
+          format = "󰜉";
+          "on-click" = "systemctl reboot";
+          tooltip = true;
+          "tooltip-format" = "Left Click: Reboot";
         };
 
         "custom/quit" = {
@@ -788,16 +565,15 @@ in {
           tooltip = true;
           "tooltip-format" = "Left Click: Launch Notification Center\nRight Click: Do not Disturb";
           format = "{} {icon} ";
-          # Coffee mug icon for all states
           "format-icons" = {
-            notification = "";
-            none = "";
-            "dnd-notification" = "";
-            "dnd-none" = "";
-            "inhibited-notification" = "";
-            "inhibited-none" = "";
-            "dnd-inhibited-notification" = "";
-            "dnd-inhibited-none" = "";
+            notification = ''<span foreground='red'><sup></sup></span>'';
+            none = "";
+            "dnd-notification" = ''<span foreground='red'><sup></sup></span>'';
+            "dnd-none" = "";
+            "inhibited-notification" = ''<span foreground='red'><sup></sup></span>'';
+            "inhibited-none" = "";
+            "dnd-inhibited-notification" = ''<span foreground='red'><sup></sup></span>'';
+            "dnd-inhibited-none" = "";
           };
           "return-type" = "json";
           "exec-if" = "which swaync-client";
@@ -807,40 +583,573 @@ in {
           escape = true;
         };
 
-        # Support modules referenced by groups
-        temperature = {
-          interval = 10;
-          tooltip = true;
-          "hwmon-path" = ["/sys/class/hwmon/hwmon1/temp1_input" "/sys/class/thermal/thermal_zone0/temp"];
-          "critical-threshold" = 82;
-          "format-critical" = "{temperatureC}°C {icon}";
-          format = "{temperatureC}°C {icon}";
-          "format-icons" = ["󰈸"];
-          "on-click-right" = "$HOME/.config/hypr/scripts/WaybarScripts.sh --nvtop";
+        # Separators
+        "custom/separator#dot" = {
+          format = "";
+          interval = "once";
+          tooltip = false;
+        };
+        "custom/separator#dot-line" = {
+          format = "";
+          interval = "once";
+          tooltip = false;
+        };
+        "custom/separator#line" = {
+          format = "|";
+          interval = "once";
+          tooltip = false;
+        };
+        "custom/separator#blank" = {
+          format = "";
+          interval = "once";
+          tooltip = false;
+        };
+        "custom/separator#blank_2" = {
+          format = "  ";
+          interval = "once";
+          tooltip = false;
+        };
+        "custom/separator#blank_3" = {
+          format = "   ";
+          interval = "once";
+          tooltip = false;
         };
 
-        "power-profiles-daemon" = {
-          format = "{icon} ";
-          "tooltip-format" = "Power profile: {profile}\nDriver: {driver}";
-          tooltip = true;
-          "format-icons" = {
-            default = "";
-            performance = "";
-            balanced = "";
-            "power-saver" = "";
+        # Groups (from ModulesGroups)
+        "group/app_drawer" = {
+          orientation = "inherit";
+          drawer = {
+            "transition-duration" = 500;
+            "children-class" = "custom/menu";
+            "transition-left-to-right" = true;
           };
+          modules = [
+            "custom/menu"
+            "custom/file_manager"
+            "custom/tty"
+            "custom/browser"
+          ];
         };
 
-        "custom/dot_update" = {
-          format = " 󰁈 ";
-          "on-click" = "$HOME/.config/hypr/scripts/KooLsDotsUpdate.sh";
-          tooltip = true;
-          "tooltip-format" = "Check KooL Dots update\nIf available";
+        "group/motherboard" = {
+          orientation = "horizontal";
+          modules = [
+            "cpu"
+            "power-profiles-daemon"
+            "memory"
+            "temperature"
+            "disk"
+          ];
+        };
+
+        "group/mobo_drawer" = {
+          orientation = "inherit";
+          drawer = {
+            "transition-duration" = 500;
+            "children-class" = "cpu";
+            "transition-left-to-right" = true;
+          };
+          modules = [
+            "temperature"
+            "cpu"
+            "power-profiles-daemon"
+            "memory"
+            "disk"
+          ];
+        };
+
+        "group/laptop" = {
+          orientation = "inherit";
+          modules = [
+            "backlight"
+            "battery"
+          ];
+        };
+
+        "group/audio" = {
+          orientation = "inherit";
+          drawer = {
+            "transition-duration" = 500;
+            "children-class" = "pulseaudio";
+            "transition-left-to-right" = true;
+          };
+          modules = [
+            "pulseaudio"
+            "pulseaudio#microphone"
+          ];
+        };
+
+        "group/status" = {
+          orientation = "inherit";
+          drawer = {
+            "transition-duration" = 500;
+            "children-class" = "custom/power";
+            "transition-left-to-right" = false;
+          };
+          modules = [
+            "custom/power"
+            "custom/lock"
+            "keyboard-state"
+            "custom/keyboard"
+          ];
+        };
+
+        "group/notify" = {
+          orientation = "inherit";
+          drawer = {
+            "transition-duration" = 500;
+            "children-class" = "custom/swaync";
+            "transition-left-to-right" = false;
+          };
+          modules = [
+            "custom/swaync"
+          ];
+        };
+
+        # Workspaces (from ModulesWorkspaces)
+        "hyprland/workspaces#rw" = {
+          "disable-scroll" = true;
+          "all-outputs" = true;
+          "warp-on-scroll" = false;
+          "sort-by-number" = true;
+          "show-special" = false;
+          "on-click" = "activate";
+          "on-scroll-up" = "hyprctl dispatch workspace e+1";
+          "on-scroll-down" = "hyprctl dispatch workspace e-1";
+          "persistent-workspaces" = {
+            "*" = 5;
+          };
+          format = "{icon} {windows}";
+          "format-window-separator" = " ";
+          "window-rewrite-default" = " ";
+          "window-rewrite" = {
+            "title<.*amazon.*>" = " ";
+            "title<.*reddit.*>" = " ";
+            "title<.*[Hh]elium.*>" = " ";
+
+            "class<firefox|org.mozilla.firefox|librewolf|floorp|mercury-browser|[Cc]achy-browser>" = " ";
+            "class<zen>" = "󰰷 ";
+            "class<waterfox|waterfox-bin>" = " ";
+            "class<microsoft-edge>" = " ";
+            "class<Chromium|Thorium|[Cc]hrome>" = " ";
+            "class<helium>" = " ";
+            "class<brave-browser>" = "🦁 ";
+            "class<tor browser>" = " ";
+            "class<firefox-developer-edition>" = "🦊 ";
+
+            "class<kitty|konsole>" = " ";
+            "class<kitty-dropterm>" = " ";
+            "class<Warp|warp|dev.warp.Warp|warp-terminal>" = "󰰭 ";
+
+            "class<[Tt]hunderbird|[Tt]hunderbird-esr>" = " ";
+            "class<eu.betterbird.Betterbird>" = " ";
+            "title<.*gmail.*>" = "󰊫 ";
+
+            "class<[Tt]elegram-desktop|org.telegram.desktop|io.github.tdesktop_x64.TDesktop>" = " ";
+            "class<discord|discord-canary|[Ww]ebcord|[Vv]esktop|com.discordapp.Discord|dev.vencord.Vesktop>" = " ";
+            "title<.*whatsapp.*>" = " ";
+            "title<.*zapzap.*>" = " ";
+            "title<.*messenger.*>" = " ";
+            "title<.*facebook.*>" = " ";
+            "class<[Ss]ignal|signal-desktop|org.signal.Signal>" = "󰍩 ";
+            "title<.*Signal.*>" = "󰍩 ";
+
+            "title<.*ChatGPT.*>" = "󰚩 ";
+            "title<.*deepseek.*>" = "󰚩 ";
+            "title<.*qwen.*>" = "󰚩 ";
+            "class<subl>" = "󰅳 ";
+            "class<slack>" = " ";
+
+            "class<mpv>" = " ";
+            "class<celluloid|Zoom>" = " ";
+            "class<Cider>" = "󰎆 ";
+            "title<.*Picture-in-Picture.*>" = " ";
+            "title<.*youtube.*>" = " ";
+            "class<vlc>" = "󰕼 ";
+            "class<[Kk]denlive|org.kde.kdenlive>" = "🎬 ";
+            "title<.*Kdenlive.*>" = "🎬 ";
+
+            "class<[Bb]ox[Bb]uddy|io.github.dvlv.boxbuddy|io.github.dvlv.BoxBuddy>" = " ";
+            "title<.*BoxBuddy.*>" = " ";
+
+            # qs-* apps
+            "class<Plex>" = "󰚺 ";
+
+            "class<virt-manager>" = " ";
+            "class<.virt-manager-wrapped>" = " ";
+            "class<remote-viewer|virt-viewer>" = " ";
+            "class<virtualbox manager>" = "💽 ";
+            "title<virtualbox>" = "💽 ";
+            "class<remmina|org.remmina.Remmina>" = "🖥️ ";
+
+            "class<VSCode|code|code-url-handler|code-oss|codium|codium-url-handler|VSCodium>" = "󰨞 ";
+            "class<dev.zed.Zed>" = "󰵁";
+            "class<codeblocks>" = "󰅩 ";
+            "title<.*github.*>" = " ";
+            "class<mousepad>" = " ";
+            "class<libreoffice-writer>" = " ";
+            "class<libreoffice-startcenter>" = "󰏆 ";
+            "class<libreoffice-calc>" = " ";
+            "title<.*nvim ~.*>" = " ";
+            "title<.*vim.*>" = " ";
+            "title<.*nvim.*>" = " ";
+            "title<.*Discord.*>" = " ";
+            "title<.*figma.*>" = " ";
+            "title<.*jira.*>" = " ";
+            "class<jetbrains-idea>" = " ";
+
+            "class<obs|com.obsproject.Studio>" = " ";
+
+            "class<polkit-gnome-authentication-agent-1>" = "󰒃 ";
+            "class<nwg-look>" = " ";
+            "class<[Pp]avucontrol|org.pulseaudio.pavucontrol>" = "󱡫 ";
+            "class<steam>" = " ";
+            "class<thunar|nemo>" = "󰝰 ";
+            "class<Gparted>" = "";
+            "class<gimp>" = " ";
+            "class<emulator>" = "📱 ";
+            "class<android-studio>" = " ";
+            "class<org.pipewire.Helvum>" = "󰓃";
+            "class<localsend>" = "";
+            "class<PrusaSlicer|UltiMaker-Cura|OrcaSlicer>" = "󰹛";
+
+            "class<io.github.kolunmi.Bazaar>" = " ";
+            "title<^Bazaar$>" = " ";
+
+            "class<com.gabm.satty>" = " ";
+            "title<^satty$>" = " ";
+
+            # qs-* apps
+            "title<Hyprland Keybinds>" = " ";
+            "title<Niri Keybinds>" = " ";
+            "title<BSPWM Keybinds>" = " ";
+            "title<DWM Keybinds>" = " ";
+            "title<Emacs Leader Keybinds>" = " ";
+            "title<Kitty Configuration>" = " ";
+            "title<Cheatsheets Viewer>" = " ";
+            "title<Documentation Viewer>" = " ";
+            "title<^Wallpapers$>" = " ";
+            "title<^Video Wallpapers$>" = " ";
+            "title<^qs-wlogout$>" = " ";
+          };
         };
       }
     ];
 
-    # Compose style: wallust colors first, then base style, then our overrides
-    style = wallustColors + baseStyle + overrides;
+    # Stylix-based CSS (replaces Wallust)
+    style = ''
+      /* ---- 💫 JakooLit ml4w-modern (Stylix) 💫 ---- */
+
+      /* Define palette from Stylix base16 */
+      @define-color backgroundlight #${c.base00};
+      @define-color backgrounddark #${c.base02};
+      @define-color workspacesbackground1 #${c.base00};
+      @define-color workspacesbackground2 #${c.base02};
+      @define-color bordercolor #${c.base0D};
+      @define-color textcolor1 #${c.base05};
+      @define-color textcolor2 #${c.base05};
+      @define-color textcolor3 #${c.base05};
+      @define-color iconcolor #${c.base05};
+      @define-color accentgreen #${c.base0B};
+      @define-color accentred #${c.base08};
+
+      * {
+        font-family: "JetBrainsMono Nerd Font";
+        font-weight: bold;
+        min-height: 0;
+        font-size: 97%;
+        font-feature-settings: '"zero", "ss01", "ss02", "ss03", "ss04", "ss05", "cv31"';
+      }
+
+      window#waybar {
+        background-color: rgba(0,0,0,0.8);
+        border-bottom: 0px solid #ffffff;
+        background: transparent;
+        transition-property: background-color;
+        transition-duration: .5s;
+      }
+
+      #workspaces {
+        background: @workspacesbackground1;
+        margin: 2px 18px 3px 1px;
+        margin-left: 6px;
+        padding: 0px 2px;
+        border-radius: 5px;
+        border: 0px;
+        font-style: normal;
+        color: @textcolor1;
+      }
+
+      #workspaces button {
+        padding: 0px 6px;
+        margin: 3px 2px;
+        border-radius: 3px;
+        color: @textcolor1;
+        background-color: @workspacesbackground1;
+        transition: all 0.1s linear;
+      }
+
+      #workspaces button.active {
+        color: @textcolor1;
+        background: @workspacesbackground2;
+        border-radius: 3px;
+        min-width: 30px;
+        transition: all 0.1s linear;
+      }
+
+      #workspaces button:hover {
+        color: @textcolor1;
+        background: @workspacesbackground2;
+        border-radius: 5px;
+        opacity: 0.7;
+      }
+
+      tooltip {
+        border-radius: 16px;
+        background-color: @backgroundlight;
+        opacity: 0.9;
+        padding: 20px;
+        margin: 0px;
+      }
+
+      tooltip label { color: @textcolor2; }
+
+      #window {
+        margin: 3px 15px 3px 0px;
+        padding: 2px 10px 0px 10px;
+        border-radius: 5px;
+        color: white;
+        font-weight: normal;
+      }
+
+      window#waybar.empty #window { background-color: transparent; }
+
+      #taskbar {
+        background: @backgroundlight;
+        margin: 3px 15px 3px 0px;
+        padding: 0px;
+        border-radius: 5px;
+        font-weight: normal;
+        font-style: normal;
+        border: 3px solid @backgroundlight;
+      }
+
+      #taskbar button { margin: 0; border-radius: 5px; padding: 0px 5px; }
+      #taskbar.empty { background: transparent; border: 0; padding: 0; margin: 0; }
+
+      .modules-left > widget:first-child > #workspaces { margin-left: 0; }
+      .modules-right > widget:last-child > #workspaces { margin-right: 0; }
+
+      #backlight,
+      #backlight-slider,
+      #battery,
+      #bluetooth,
+      #clock,
+      #cpu,
+      #disk,
+      #idle_inhibitor,
+      #keyboard-state,
+      #memory,
+      #mode,
+      #mpris,
+      #network,
+      #power-profiles-daemon,
+      #pulseaudio,
+      #pulseaudio-slider,
+      #taskbar button,
+      #taskbar,
+      #temperature,
+      #tray,
+      #window,
+      #wireplumber,
+      #workspaces,
+      #custom-backlight,
+      #custom-browser,
+      #custom-cava_mviz,
+      #custom-cycle_wall,
+      #custom-dot_update,
+      #custom-file_manager,
+      #custom-keybinds,
+      #custom-keyboard,
+      #custom-light_dark,
+      #custom-lock,
+      #custom-hint,
+      #custom-hypridle,
+      #custom-menu,
+      #custom-playerctl,
+      #custom-power_vertical,
+      #custom-power,
+      #custom-quit,
+      #custom-reboot,
+      #custom-settings,
+      #custom-spotify,
+      #custom-swaync,
+      #custom-tty,
+      #custom-updater,
+      #custom-hyprpicker,
+      #custom-weather,
+      #custom-weather.clearNight,
+      #custom-weather.cloudyFoggyDay,
+      #custom-weather.cloudyFoggyNight,
+      #custom-weather.default,
+      #custom-weather.rainyDay,
+      #custom-weather.rainyNight,
+      #custom-weather.severe,
+      #custom-weather.showyIcyDay,
+      #custom-weather.snowyIcyNight,
+      #custom-weather.sunnyDay {
+        margin-right: 8px;
+        margin-left: 6px;
+        font-size: 100%;
+        color: @iconcolor;
+      }
+
+      #custom-swaync { margin-left: 12px; color: @accentgreen; }
+      #custom-swaync.notification,
+      #custom-swaync.dnd-notification,
+      #custom-swaync.inhibited-notification { color: @accentred; }
+
+      #idle_inhibitor {
+        margin-right: 15px;
+        font-size: 102%;
+        font-weight: bold;
+        color: @iconcolor;
+      }
+
+      #idle_inhibitor.activated {
+        margin-right: 15px;
+        font-size: 100%;
+        font-weight: bold;
+        color: @accentgreen;
+      }
+
+      #idle_inhibitor.deactivated {
+        color: @accentred;
+      }
+
+      #custom-menu {
+        background-color: @backgrounddark;
+        color: @textcolor1;
+        border-radius: 5px;
+        padding: 0px 10px;
+        margin: 2px 17px 2px 0px;
+        border: 3px solid @bordercolor;
+      }
+
+      #custom-power {
+        background-color: @backgrounddark;
+        color: @textcolor1;
+        border-radius: 5px;
+        padding: 0px 0px 0px 6px;
+        border: 3px solid @bordercolor;
+      }
+
+      #custom-keybinds { margin: 0px 13px 0px 0px; padding: 0px; color: @iconcolor; }
+
+      #custom-updater {
+        background-color: @backgroundlight;
+        color: @textcolor2;
+        border-radius: 5px;
+        padding: 2px 10px 0px 10px;
+        margin: 3px 15px 3px 0px;
+      }
+
+      #custom-updates.green { background-color: @backgroundlight; }
+      #custom-updates.yellow { background-color: #ff9a3c; color: #FFFFFF; }
+      #custom-updates.red { background-color: #dc2f2f; color: #FFFFFF; }
+
+      #keyboard-state { margin-right: 10px; }
+
+      #clock {
+        background-color: @backgrounddark;
+        color: @textcolor1;
+        border-radius: 3px 5px 3px 5px;
+        padding: 1px 10px 0px 10px;
+        margin: 3px 0px 3px 0px;
+        border: 3px solid @bordercolor;
+      }
+
+      #backlight {
+        background-color: @backgroundlight;
+        margin-left: 6px;
+        color: @textcolor2;
+        border-radius: 5px;
+        padding: 2px 10px 0px 10px;
+        margin: 3px 15px 3px 0px;
+      }
+
+      #pulseaudio {
+        background-color: @backgroundlight;
+        color: @textcolor2;
+        border-radius: 5px;
+        padding: 2px 10px 0px 10px;
+        margin: 3px 15px 3px 0px;
+      }
+
+      #pulseaudio.muted { background-color: @backgrounddark; color: @textcolor1; }
+
+      #network,
+      #network.ethernet,
+      #network.wifi,
+      #bluetooth,
+      #bluetooth.on,
+      #bluetooth.connected,
+      #battery {
+        background-color: @backgroundlight;
+        color: @textcolor2;
+        border-radius: 5px;
+        padding: 2px 10px 0px 10px;
+        margin: 3px 15px 3px 0px;
+      }
+
+      #bluetooth.off { background-color: transparent; padding: 0px; margin: 0px; }
+
+      #battery.charging, #battery.plugged { color: @textcolor2; background-color: @backgroundlight; }
+
+      @keyframes blink { to { background-color: @backgroundlight; color: @textcolor2; } }
+      #battery.critical:not(.charging) {
+        background-color: #f53c3c;
+        color: @textcolor3;
+        animation-name: blink;
+        animation-duration: 3.0s;
+        animation-timing-function: steps(12);
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+      }
+
+      #tray { padding: 0px 15px 0px 0px; }
+      #tray > .passive { -gtk-icon-effect: dim; }
+      #tray > .needs-attention { -gtk-icon-effect: highlight; }
+
+      #backlight-slider slider,
+      #pulseaudio-slider slider {
+        min-width: 0px;
+        min-height: 0px;
+        opacity: 0;
+        background-image: none;
+        border: none;
+        box-shadow: none;
+      }
+
+      #backlight-slider trough,
+      #pulseaudio-slider trough { min-width: 80px; min-height: 5px; border-radius: 5px; }
+      #backlight-slider highlight,
+      #pulseaudio-slider highlight { min-height: 10px; border-radius: 5px; }
+
+      /* --- Explicit color overrides to ensure correct states --- */
+      /* SwayNC: green when no notifications, red when any notification state */
+      #custom-swaync { color: #00f769; }
+      #custom-swaync.none,
+      #custom-swaync.dnd-none,
+      #custom-swaync.inhibited-none { color: #00f769; }
+      #custom-swaync.notification,
+      #custom-swaync.dnd-notification,
+      #custom-swaync.inhibited-notification { color: #f38ba8; }
+
+      /* Idle inhibitor: red when deactivated, green when activated */
+      #idle_inhibitor { color: #f38ba8; }
+      #idle_inhibitor.deactivated { color: #f38ba8; }
+      #idle_inhibitor.activated { color: #00f769; }
+    '';
   };
 }

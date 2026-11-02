@@ -14,16 +14,26 @@ in {
       # Lan Tian's cache provides pre-built CachyOS kernel binaries; see
       # hosts/nixos/kernel.nix which pins the matching nixpkgs revision via the
       # nix-cachyos-kernel pinned overlay.
+      # FreeSM Launcher's Cachix cache serves pre-built binaries for the
+      # `freesmlauncher` flake input (github:FreesmTeam/FreesmLauncher).
+      #
+      # IMPORTANT: plain lists only — do NOT wrap these in lib.mkAfter/lib.mkBefore.
+      # This module is the only active definer of these options (cachix.nix is not
+      # imported), so an order marker would never be merged away and would reach
+      # the `listOf str` type check as a set, causing:
+      #   error: expected a list but found a set: { _type = "order"; content = ... }
       substituters = [
         "https://cache.nixos.org"
         "https://hyprland.cachix.org"
         "https://nix-community.cachix.org"
         "https://cache.lantian.pub/lantian"
+        "https://freesmlauncher.cachix.org"
       ];
       trusted-public-keys = [
         "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
         "lantian:WVGO7vsRMSEN+h7Lp7kv6SAmrkEXgUGbbXm7jMDjBuQ="
+        "freesmlauncher.cachix.org-1:Jcp5Q9wiLL+EDv8Mh7c6L9xGk+lXr7/otpKxMOuBuDs="
       ];
     };
   };

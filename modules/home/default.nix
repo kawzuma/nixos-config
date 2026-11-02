@@ -29,6 +29,7 @@ in {
       ./emoji.nix
       ./eza.nix
       ./fastfetch
+      ./freesmlauncher.nix
       ./cli/fzf.nix
       ./cli/gh.nix
       ./cli/git.nix
